@@ -1,6 +1,5 @@
 import { useState, useRef } from 'react'
 
-// Icons
 const FlameIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 2C12 2 7 7 7 13a5 5 0 0010 0C17 7 12 2 12 2z" fill="currentColor" opacity="0.9"/>
@@ -29,11 +28,41 @@ const AlertIcon = () => (
   </svg>
 )
 
+const SLIDER_LABELS = ['Very low', 'Low', 'Medium', 'High', 'Very high']
+
+function SliderInput({ label, hint, value, onChange }) {
+  return (
+    <div className="slider-field">
+      <div className="slider-header">
+        <span className="field-label">{label}</span>
+        <span className="slider-value">{SLIDER_LABELS[value - 1]}</span>
+      </div>
+      <p className="field-hint">{hint}</p>
+      <input
+        type="range"
+        min="1"
+        max="5"
+        value={value}
+        onChange={e => onChange(Number(e.target.value))}
+        className="slider"
+      />
+      <div className="slider-ticks">
+        <span>Very low</span>
+        <span>Very high</span>
+      </div>
+    </div>
+  )
+}
+
 export default function App() {
   const [inputText, setInputText] = useState('')
   const [tone, setTone] = useState('Empathetic')
+  const [skill, setSkill] = useState(3)
+  const [confidence, setConfidence] = useState(3)
   const [output, setOutput] = useState('')
+  const [guide, setGuide] = useState('')
   const [cadence, setCadence] = useState('')
+  const [activeTab, setActiveTab] = useState('feedback')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
@@ -47,14 +76,16 @@ export default function App() {
 
     setError('')
     setOutput('')
+    setGuide('')
     setCadence('')
+    setActiveTab('feedback')
     setLoading(true)
 
     try {
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputText: inputText.trim(), tone })
+        body: JSON.stringify({ inputText: inputText.trim(), tone, skill, confidence })
       })
 
       if (!res.ok) {
@@ -69,6 +100,7 @@ export default function App() {
 
       const data = await res.json()
       const result = data.result || ''
+      const guideResult = data.guide || ''
 
       const cadenceMarker = '===CADENCE==='
       const cadenceIndex = result.indexOf(cadenceMarker)
@@ -78,6 +110,8 @@ export default function App() {
       } else {
         setOutput(result)
       }
+
+      setGuide(guideResult)
 
       setTimeout(() => {
         outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
@@ -132,6 +166,22 @@ export default function App() {
 
             <div className="divider" />
 
+            <div className="card-title">About this person</div>
+            <SliderInput
+              label="Skill level"
+              hint="How capable are they at this type of task or responsibility?"
+              value={skill}
+              onChange={setSkill}
+            />
+            <SliderInput
+              label="Confidence level"
+              hint="How confident are they in their own ability right now?"
+              value={confidence}
+              onChange={setConfidence}
+            />
+
+            <div className="divider" />
+
             <div className="card-title">Feedback style</div>
             <div className="tone-group">
               <button
@@ -175,24 +225,55 @@ export default function App() {
           {output && (
             <div className="output-section" ref={outputRef}>
               <div className="card">
-                <div className="output-header">
-                  <div className="card-title" style={{ marginBottom: 0 }}>Your feedback, reframed</div>
+                <div className="tab-bar">
                   <button
-                    className={`copy-btn${copied ? ' copied' : ''}`}
-                    onClick={handleCopy}
+                    className={`tab-btn${activeTab === 'feedback' ? ' active' : ''}`}
+                    onClick={() => setActiveTab('feedback')}
                     type="button"
                   >
-                    {copied ? <><CheckIcon /> Copied</> : <><CopyIcon /> Copy</>}
+                    Feedback
                   </button>
+                  {guide && (
+                    <button
+                      className={`tab-btn${activeTab === 'guide' ? ' active' : ''}`}
+                      onClick={() => setActiveTab('guide')}
+                      type="button"
+                    >
+                      Conversation guide
+                    </button>
+                  )}
                 </div>
-                <textarea
-                  className="output-area"
-                  value={output}
-                  onChange={e => setOutput(e.target.value)}
-                  rows={14}
-                />
+
+                {activeTab === 'feedback' && (
+                  <div className="tab-content">
+                    <div className="output-header">
+                      <div className="card-title" style={{ marginBottom: 0 }}>Your feedback, reframed</div>
+                      <button
+                        className={`copy-btn${copied ? ' copied' : ''}`}
+                        onClick={handleCopy}
+                        type="button"
+                      >
+                        {copied ? <><CheckIcon /> Copied</> : <><CopyIcon /> Copy</>}
+                      </button>
+                    </div>
+                    <textarea
+                      className="output-area"
+                      value={output}
+                      onChange={e => setOutput(e.target.value)}
+                      rows={14}
+                    />
+                  </div>
+                )}
+
+                {activeTab === 'guide' && guide && (
+                  <div className="tab-content">
+                    <div className="card-title">How to have this conversation</div>
+                    <GuideDisplay content={guide} />
+                  </div>
+                )}
               </div>
-              {cadence && (
+
+              {cadence && activeTab === 'feedback' && (
                 <div className="cadence-card">
                   <div className="card-title">Suggested feedback cadence</div>
                   <CadenceDisplay content={cadence} />
@@ -213,6 +294,25 @@ export default function App() {
           </div>
         </div>
       </footer>
+    </div>
+  )
+}
+
+function GuideDisplay({ content }) {
+  const sections = content.split('===SECTION===').map(s => s.trim()).filter(Boolean)
+  return (
+    <div className="guide-content">
+      {sections.map((section, i) => {
+        const lines = section.split('\n').filter(Boolean)
+        const heading = lines[0]
+        const body = lines.slice(1).join('\n')
+        return (
+          <div key={i} className="guide-section">
+            {heading && <div className="guide-heading">{heading}</div>}
+            {body && <p>{body}</p>}
+          </div>
+        )
+      })}
     </div>
   )
 }
