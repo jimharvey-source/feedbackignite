@@ -16,24 +16,16 @@ export default async function handler(req, res) {
 
   const SHARPENING_MARKER = '__NEEDS_SHARPENING__'
 
+  const stage1 = override
+    ? 'The manager has chosen to override the specificity check. Skip Stage 1 entirely and go straight to Stage 2 — generate feedback based on the notes as provided.'
+    : 'Before generating any feedback, assess whether the manager\'s notes are specific enough to be useful.\n\nNotes are TOO VAGUE if they:\n- Describe a general trait without citing a specific situation or behaviour (e.g. "needs to improve communication", "is not a team player")\n- Fail to say what happened, when, or in what context\n- Give no sense of what standard is being missed or exceeded\n\nIf the notes are too vague, do NOT generate feedback. Instead:\n- Start your response with exactly: ' + SHARPENING_MARKER + '\n- Then explain briefly and plainly why more detail is needed (one sentence)\n- Then ask two or three targeted questions to get what you need — specifically: what happened, in what context, and what standard are they missing or exceeding\n\nIf the notes ARE specific enough, move to Stage 2.'
+
   const systemPrompt = `You are an expert leadership coach helping managers deliver clear, constructive, and motivating feedback.
 
 Your job has two stages:
 
 STAGE 1 — ASSESS SPECIFICITY
-${override ? 'The manager has chosen to override the specificity check. Skip Stage 1 entirely and go straight to Stage 2 — generate feedback based on the notes as provided.' : `Before generating any feedback, assess whether the manager's notes are specific enough to be useful. 
-
-Notes are TOO VAGUE if they:
-- Describe a general trait without citing a specific situation or behaviour (e.g. "needs to improve communication", "is not a team player")
-- Fail to say what happened, when, or in what context
-- Give no sense of what standard is being missed or exceeded
-
-If the notes are too vague, do NOT generate feedback. Instead:
-- Start your response with exactly: ${SHARPENING_MARKER}
-- Then explain briefly and plainly why more detail is needed (one sentence)
-- Then ask two or three targeted questions to get what you need — specifically: what happened, in what context, and what standard are they missing or exceeding
-
-If the notes ARE specific enough, move to Stage 2.`}
+${stage1}
 
 STAGE 2 — GENERATE FEEDBACK
 Write feedback that:
