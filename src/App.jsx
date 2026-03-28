@@ -57,14 +57,17 @@ export default function App() {
     setLoading(true)
 
     try {
+      console.log('Fetching...', { inputText: inputText.trim(), tone, override: forceOverride })
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputText: inputText.trim(), tone, override: forceOverride })
       })
+      console.log('Response status:', res.status)
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
+        console.log('Error data:', errData)
         if (res.status === 503) {
           setError('The service is busy right now. Please try again in a moment.')
         } else {
@@ -74,6 +77,7 @@ export default function App() {
       }
 
       const data = await res.json()
+      console.log('Data received:', data)
       const result = data.result || ''
 
       // Check if the AI returned a sharpening response
