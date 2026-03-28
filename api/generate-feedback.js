@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { inputText, tone } = req.body || {}
+  const { inputText, tone, override } = req.body || {}
 
   if (!inputText || !inputText.trim()) {
     return res.status(400).json({ error: 'Please enter your feedback notes before generating.' })
@@ -21,7 +21,7 @@ export default async function handler(req, res) {
 Your job has two stages:
 
 STAGE 1 — ASSESS SPECIFICITY
-Before generating any feedback, assess whether the manager's notes are specific enough to be useful. 
+${override ? 'The manager has chosen to override the specificity check. Skip Stage 1 entirely and go straight to Stage 2 — generate feedback based on the notes as provided.' : `Before generating any feedback, assess whether the manager's notes are specific enough to be useful. 
 
 Notes are TOO VAGUE if they:
 - Describe a general trait without citing a specific situation or behaviour (e.g. "needs to improve communication", "is not a team player")
@@ -33,7 +33,7 @@ If the notes are too vague, do NOT generate feedback. Instead:
 - Then explain briefly and plainly why more detail is needed (one sentence)
 - Then ask two or three targeted questions to get what you need — specifically: what happened, in what context, and what standard are they missing or exceeding
 
-If the notes ARE specific enough, move to Stage 2.
+If the notes ARE specific enough, move to Stage 2.`}
 
 STAGE 2 — GENERATE FEEDBACK
 Write feedback that:

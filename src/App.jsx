@@ -40,9 +40,10 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [override, setOverride] = useState(false)
   const outputRef = useRef(null)
 
-  const handleGenerate = async () => {
+  const handleGenerate = async (forceOverride = false) => {
     if (!inputText.trim()) {
       setError('Please enter your feedback notes before generating.')
       return
@@ -52,13 +53,14 @@ export default function App() {
     setSharpeningNote('')
     setOutput('')
     setCadence('')
+    setOverride(false)
     setLoading(true)
 
     try {
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputText: inputText.trim(), tone })
+        body: JSON.stringify({ inputText: inputText.trim(), tone, override: forceOverride })
       })
 
       if (!res.ok) {
@@ -157,6 +159,13 @@ export default function App() {
                   Your notes need more detail
                 </div>
                 <p>{sharpeningNote}</p>
+                <button
+                  className="override-btn"
+                  onClick={() => handleGenerate(true)}
+                  type="button"
+                >
+                  Generate anyway
+                </button>
               </div>
             )}
 

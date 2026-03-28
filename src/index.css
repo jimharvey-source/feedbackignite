@@ -439,6 +439,26 @@ textarea.output-area:focus {
   color: var(--ink-mid);
 }
 
+/* ── Override Button ── */
+.override-btn {
+  margin-top: 14px;
+  padding: 7px 16px;
+  background: transparent;
+  border: 1.5px solid #c084fc;
+  border-radius: 6px;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--brand);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.override-btn:hover {
+  background: white;
+  border-color: var(--brand);
+}
+
 /* ── Error ── */
 .error-msg {
   background: #fff1f2;
