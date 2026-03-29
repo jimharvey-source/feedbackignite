@@ -28,6 +28,21 @@ const AlertIcon = () => (
   </svg>
 )
 
+const MailIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+    <polyline points="22,6 12,13 2,6"/>
+  </svg>
+)
+
+const ShareIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+  </svg>
+)
+
 const SLIDER_LABELS = ['Very low', 'Low', 'Medium', 'High', 'Very high']
 
 function SliderInput({ label, hint, value, onChange }) {
@@ -39,17 +54,11 @@ function SliderInput({ label, hint, value, onChange }) {
       </div>
       <p className="field-hint">{hint}</p>
       <input
-        type="range"
-        min="1"
-        max="5"
-        value={value}
+        type="range" min="1" max="5" value={value}
         onChange={e => onChange(Number(e.target.value))}
         className="slider"
       />
-      <div className="slider-ticks">
-        <span>Very low</span>
-        <span>Very high</span>
-      </div>
+      <div className="slider-ticks"><span>Very low</span><span>Very high</span></div>
     </div>
   )
 }
@@ -73,7 +82,6 @@ export default function App() {
       setError('Please enter your feedback notes before generating.')
       return
     }
-
     setError('')
     setOutput('')
     setGuide('')
@@ -90,11 +98,9 @@ export default function App() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}))
-        if (res.status === 503) {
-          setError('The service is busy right now. Please try again in a moment.')
-        } else {
-          setError(errData.error || 'Something went wrong. Please try again.')
-        }
+        setError(res.status === 503
+          ? 'The service is busy right now. Please try again in a moment.'
+          : errData.error || 'Something went wrong. Please try again.')
         return
       }
 
@@ -110,7 +116,6 @@ export default function App() {
       } else {
         setOutput(result)
       }
-
       setGuide(guideResult)
 
       setTimeout(() => {
@@ -132,15 +137,42 @@ export default function App() {
     })
   }
 
+  const handleMail = () => {
+    if (!output) return
+    const subject = encodeURIComponent('Your development feedback')
+    const body = encodeURIComponent(output)
+    window.location.href = `mailto:?subject=${subject}&body=${body}`
+  }
+
+  const handleShare = async () => {
+    if (!output) return
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Development feedback',
+          text: output
+        })
+      } catch (err) {
+        // User cancelled — do nothing
+      }
+    } else {
+      // Fallback: copy and show message
+      navigator.clipboard.writeText(output)
+      alert('Copied to clipboard — paste into WhatsApp, Slack, or wherever you need it.')
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="page-header">
         <div className="header-inner">
           <a href="/" className="brand">
             <div className="brand-icon"><FlameIcon /></div>
-            <span className="brand-name">Feedback <span>Ignite</span></span>
+            <div className="brand-text">
+              <span className="brand-name">Feedback <span>Ignite</span></span>
+              <span className="brand-suite">Part of the Management Ignition Suite</span>
+            </div>
           </a>
-          <span className="suite-badge">Management Ignition</span>
         </div>
       </header>
 
@@ -184,41 +216,23 @@ export default function App() {
 
             <div className="card-title">Feedback style</div>
             <div className="tone-group">
-              <button
-                className={`tone-btn${tone === 'Empathetic' ? ' selected' : ''}`}
-                onClick={() => setTone('Empathetic')}
-                type="button"
-              >
+              <button className={`tone-btn${tone === 'Empathetic' ? ' selected' : ''}`} onClick={() => setTone('Empathetic')} type="button">
                 <span className="tone-label">Empathetic</span>
                 <span className="tone-desc">Warm and supportive — still direct and clear</span>
               </button>
-              <button
-                className={`tone-btn${tone === 'Direct' ? ' selected' : ''}`}
-                onClick={() => setTone('Direct')}
-                type="button"
-              >
+              <button className={`tone-btn${tone === 'Direct' ? ' selected' : ''}`} onClick={() => setTone('Direct')} type="button">
                 <span className="tone-label">Direct</span>
                 <span className="tone-desc">Concise and professional — respectful but unambiguous</span>
               </button>
             </div>
 
-            {error && (
-              <div className="error-msg">
-                <AlertIcon /> {error}
-              </div>
-            )}
+            {error && <div className="error-msg"><AlertIcon /> {error}</div>}
 
-            <button
-              className="generate-btn"
-              onClick={handleGenerate}
-              disabled={loading}
-              type="button"
-            >
-              {loading ? (
-                <><span className="spinner" />Generating...</>
-              ) : (
-                <><div style={{ width: 18, height: 18, color: 'white' }}><FlameIcon /></div>Generate Feedback</>
-              )}
+            <button className="generate-btn" onClick={handleGenerate} disabled={loading} type="button">
+              {loading
+                ? <><span className="spinner" />Generating...</>
+                : <><div style={{ width: 18, height: 18, color: 'white' }}><FlameIcon /></div>Generate Feedback</>
+              }
             </button>
           </div>
 
@@ -226,42 +240,27 @@ export default function App() {
             <div className="output-section" ref={outputRef}>
               <div className="card">
                 <div className="tab-bar">
-                  <button
-                    className={`tab-btn${activeTab === 'feedback' ? ' active' : ''}`}
-                    onClick={() => setActiveTab('feedback')}
-                    type="button"
-                  >
-                    Feedback
-                  </button>
-                  {guide && (
-                    <button
-                      className={`tab-btn${activeTab === 'guide' ? ' active' : ''}`}
-                      onClick={() => setActiveTab('guide')}
-                      type="button"
-                    >
-                      Conversation guide
-                    </button>
-                  )}
+                  <button className={`tab-btn${activeTab === 'feedback' ? ' active' : ''}`} onClick={() => setActiveTab('feedback')} type="button">Feedback</button>
+                  {guide && <button className={`tab-btn${activeTab === 'guide' ? ' active' : ''}`} onClick={() => setActiveTab('guide')} type="button">Conversation guide</button>}
                 </div>
 
                 {activeTab === 'feedback' && (
                   <div className="tab-content">
                     <div className="output-header">
                       <div className="card-title" style={{ marginBottom: 0 }}>Your feedback, reframed</div>
-                      <button
-                        className={`copy-btn${copied ? ' copied' : ''}`}
-                        onClick={handleCopy}
-                        type="button"
-                      >
-                        {copied ? <><CheckIcon /> Copied</> : <><CopyIcon /> Copy</>}
-                      </button>
+                      <div className="action-btns">
+                        <button className={`copy-btn${copied ? ' copied' : ''}`} onClick={handleCopy} type="button">
+                          {copied ? <><CheckIcon /> Copied</> : <><CopyIcon /> Copy</>}
+                        </button>
+                        <button className="copy-btn" onClick={handleMail} type="button">
+                          <MailIcon /> Email
+                        </button>
+                        <button className="copy-btn" onClick={handleShare} type="button">
+                          <ShareIcon /> Share
+                        </button>
+                      </div>
                     </div>
-                    <textarea
-                      className="output-area"
-                      value={output}
-                      onChange={e => setOutput(e.target.value)}
-                      rows={14}
-                    />
+                    <textarea className="output-area" value={output} onChange={e => setOutput(e.target.value)} rows={14} />
                   </div>
                 )}
 
@@ -321,9 +320,7 @@ function CadenceDisplay({ content }) {
   const pillRegex = /\[([^\]]+)\]/g
   const pills = []
   let match
-  while ((match = pillRegex.exec(content)) !== null) {
-    pills.push(match[1])
-  }
+  while ((match = pillRegex.exec(content)) !== null) pills.push(match[1])
   const prose = content.replace(pillRegex, '').trim()
   return (
     <div className="cadence-content">
