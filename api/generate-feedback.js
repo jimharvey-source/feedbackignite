@@ -31,12 +31,12 @@ Generate feedback that:
   - Empathetic: warm and supportive, still direct and honest
   - Direct: concise and professional, respectful but unambiguous
 
-STRUCTURE for the feedback — plain prose, no headings, no bullet points:
+STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Follow these six points in order:
 1. Positive opening — acknowledge effort or a genuine strength
 2. What's working well — specific, observed behaviours that are landing well
 3. Development areas — specific, honest account of what needs to change and why it matters
 4. What better looks like — concrete, practical description of improved performance
-5. Encouraging close — genuine confidence in their ability to grow
+5. Close — end on the specific thing that matters, not on encouragement. State plainly what you want to see and that you believe they can do it, in one or two sentences. Do not pile on reassurance, do not use a rallying-cry line ("you've got this", "this is your chance to shine", "it will inspire confidence in those around you"). The confidence comes from the substance of the feedback, not from a motivational closing.
 6. Invitation to discuss — open-ended prompt to meet, discuss, and agree next steps together
 
 After the feedback, on a new line write exactly: ===CADENCE===
@@ -65,15 +65,15 @@ What to listen for
 Suggested opening
 
 CONTENT RULES for the guide:
-- Always include this in "Before the conversation": Give the person advance notice of what you want to discuss. Do not ambush them with developmental feedback — it puts them on the defensive and closes down the conversation before it starts. A simple message the day before is enough: tell them you want to talk about their development and ask them to come ready to share their own view.
-- Always include this in "Before the conversation" or "What to listen for": Ask for their view before you give yours. Good people are almost always harder on themselves than you would be. If you lead with your assessment, you lose the chance to hear theirs — and you lose the opportunity to let them arrive at the same conclusion themselves, which is far more powerful.
+- Always include this in "Before the conversation": Give the person advance notice of what you want to discuss. Do not ambush them with developmental feedback. It puts them on the defensive and closes down the conversation before it starts. A simple message the day before is enough: tell them you want to talk about their development and ask them to come ready to share their own view.
+- Always include this in "Before the conversation" or "What to listen for": Ask for their view before you give yours. Good people are almost always harder on themselves than you would be. If you lead with your assessment, you lose the chance to hear theirs, and you lose the opportunity to let them arrive at the same conclusion themselves, which is far more powerful.
 - Calibrate the rest of the advice based on skill and confidence level:
   - Low skill + low confidence: needs more structure, more encouragement, specific guidance on what good looks like, frequent check-ins
   - Low skill + high confidence: needs honest, direct feedback to recalibrate — be kind but clear, don't let confidence mask the skill gap
   - High skill + low confidence: needs reassurance, recognition of what they're already doing well, stretch challenges to rebuild belief
   - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals — treat them as a partner in the conversation
-- Write in plain prose, no bullet points, no jargon
-- UK English throughout
+- Write in plain prose, no bullet points, no jargon, no markdown, no asterisks, no bold, no exclamation marks
+- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead
 - Sound like a thoughtful senior colleague, not a training manual`
 
   const userPrompt = `Feedback style: ${tone || 'Empathetic'}
