@@ -75,6 +75,7 @@ export default function App() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [guideCopied, setGuideCopied] = useState(false)
   const outputRef = useRef(null)
 
   const handleGenerate = async () => {
@@ -159,6 +160,31 @@ export default function App() {
       // Fallback: copy and show message
       navigator.clipboard.writeText(output)
       alert('Copied to clipboard — paste into WhatsApp, Slack, or wherever you need it.')
+    }
+  }
+
+  const handleGuideCopy = () => {
+    if (!guide) return
+    navigator.clipboard.writeText(guide).then(() => {
+      setGuideCopied(true)
+      setTimeout(() => setGuideCopied(false), 2000)
+    })
+  }
+
+  const handleGuideShare = async () => {
+    if (!guide) return
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'Conversation guide',
+          text: guide
+        })
+      } catch (err) {
+        // User cancelled — do nothing
+      }
+    } else {
+      navigator.clipboard.writeText(guide)
+      alert('Copied to clipboard — paste into your notes or wherever you need it.')
     }
   }
 
@@ -266,7 +292,17 @@ export default function App() {
 
                 {activeTab === 'guide' && guide && (
                   <div className="tab-content">
-                    <div className="card-title">How to have this conversation</div>
+                    <div className="output-header">
+                      <div className="card-title" style={{ marginBottom: 0 }}>How to have this conversation</div>
+                      <div className="action-btns">
+                        <button className={`copy-btn${guideCopied ? ' copied' : ''}`} onClick={handleGuideCopy} type="button">
+                          {guideCopied ? <><CheckIcon /> Copied</> : <><CopyIcon /> Copy</>}
+                        </button>
+                        <button className="copy-btn" onClick={handleGuideShare} type="button">
+                          <ShareIcon /> Share
+                        </button>
+                      </div>
+                    </div>
                     <GuideDisplay content={guide} />
                   </div>
                 )}
@@ -298,13 +334,34 @@ export default function App() {
 }
 
 function GuideDisplay({ content }) {
+  // The known section headings from the prompt. We match against these so the
+  // heading/body split works whether or not the model put a newline between them.
+  const KNOWN_HEADINGS = [
+    'Before the conversation',
+    'Tone and approach',
+    'How much direction to give',
+    'What to listen for',
+    'Suggested opening'
+  ]
   const sections = content.split('===SECTION===').map(s => s.trim()).filter(Boolean)
   return (
     <div className="guide-content">
       {sections.map((section, i) => {
-        const lines = section.split('\n').filter(Boolean)
-        const heading = lines[0]
-        const body = lines.slice(1).join('\n')
+        let heading = ''
+        let body = section
+        // Find which known heading this section starts with (case-insensitive).
+        const match = KNOWN_HEADINGS.find(h => section.toLowerCase().startsWith(h.toLowerCase()))
+        if (match) {
+          heading = match
+          body = section.slice(match.length).trim()
+        } else {
+          // Fallback: treat the first line as the heading.
+          const lines = section.split('\n').filter(Boolean)
+          heading = lines[0] || ''
+          body = lines.slice(1).join('\n').trim()
+        }
+        // Strip a leading colon or dash left over from "Heading: body" formats.
+        body = body.replace(/^[:\-\u2013\u2014\s]+/, '').trim()
         return (
           <div key={i} className="guide-section">
             {heading && <div className="guide-heading">{heading}</div>}
