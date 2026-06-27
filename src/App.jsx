@@ -334,8 +334,7 @@ export default function App() {
 }
 
 function GuideDisplay({ content }) {
-  // The known section headings from the prompt. We match against these so the
-  // heading/body split works whether or not the model put a newline between them.
+  // The known section headings from the prompt.
   const KNOWN_HEADINGS = [
     'Before the conversation',
     'Tone and approach',
@@ -343,32 +342,38 @@ function GuideDisplay({ content }) {
     'What to listen for',
     'Suggested opening'
   ]
-  const sections = content.split('===SECTION===').map(s => s.trim()).filter(Boolean)
+  const isHeading = (s) =>
+    KNOWN_HEADINGS.some(h => s.trim().toLowerCase() === h.toLowerCase())
+
+  // Split on the section marker. The model emits the marker between every block,
+  // so headings and their bodies arrive as alternating blocks. Pair each known
+  // heading with the block that follows it.
+  const blocks = content.split('===SECTION===').map(s => s.trim()).filter(Boolean)
+  const sections = []
+  for (let i = 0; i < blocks.length; i++) {
+    if (isHeading(blocks[i])) {
+      const heading = KNOWN_HEADINGS.find(h => h.toLowerCase() === blocks[i].toLowerCase())
+      const next = blocks[i + 1]
+      if (next && !isHeading(next)) {
+        sections.push({ heading, body: next })
+        i++ // consume the body block
+      } else {
+        sections.push({ heading, body: '' })
+      }
+    } else {
+      // A stray body block with no preceding heading — render as plain prose.
+      sections.push({ heading: '', body: blocks[i] })
+    }
+  }
+
   return (
     <div className="guide-content">
-      {sections.map((section, i) => {
-        let heading = ''
-        let body = section
-        // Find which known heading this section starts with (case-insensitive).
-        const match = KNOWN_HEADINGS.find(h => section.toLowerCase().startsWith(h.toLowerCase()))
-        if (match) {
-          heading = match
-          body = section.slice(match.length).trim()
-        } else {
-          // Fallback: treat the first line as the heading.
-          const lines = section.split('\n').filter(Boolean)
-          heading = lines[0] || ''
-          body = lines.slice(1).join('\n').trim()
-        }
-        // Strip a leading colon or dash left over from "Heading: body" formats.
-        body = body.replace(/^[:\-\u2013\u2014\s]+/, '').trim()
-        return (
-          <div key={i} className="guide-section">
-            {heading && <div className="guide-heading">{heading}</div>}
-            {body && <p>{body}</p>}
-          </div>
-        )
-      })}
+      {sections.map((section, i) => (
+        <div key={i} className="guide-section">
+          {section.heading && <div className="guide-heading">{section.heading}</div>}
+          {section.body && <p>{section.body}</p>}
+        </div>
+      ))}
     </div>
   )
 }
