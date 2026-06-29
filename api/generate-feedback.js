@@ -31,7 +31,7 @@ Generate feedback that:
   - Empathetic: warm and supportive, still direct and honest
   - Direct: concise and professional, respectful but unambiguous. Concise does not mean cold, and it does not mean pivoting straight to the criticism. The structure below applies in full to both tones.
 
-STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", or the phrase "moving forward".
+STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward".
 
 Observe the cardinal rule: never pivot from the strength to the development with "however", "but", "that said", or any hinge that signals the praise was throat-clearing. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
 1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
@@ -74,7 +74,7 @@ CONTENT RULES for the guide:
   - High skill + low confidence: needs reassurance, recognition of what they're already doing well, stretch challenges to rebuild belief
   - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals — treat them as a partner in the conversation
 - Write in plain prose, no bullet points, no jargon, no markdown, no asterisks, no bold, no exclamation marks
-- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", or the phrase "moving forward"
+- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward"
 - Sound like a thoughtful senior colleague, not a training manual`
 
   const userPrompt = `Feedback style: ${tone || 'Empathetic'}
