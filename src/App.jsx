@@ -43,6 +43,14 @@ const ShareIcon = () => (
   </svg>
 )
 
+const DownloadIcon = () => (
+  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+    <polyline points="7 10 12 15 17 10"/>
+    <line x1="12" y1="15" x2="12" y2="3"/>
+  </svg>
+)
+
 const SLIDER_LABELS = ['Very low', 'Low', 'Medium', 'High', 'Very high']
 
 function SliderInput({ label, hint, value, onChange }) {
@@ -188,6 +196,31 @@ export default function App() {
     }
   }
 
+  const [downloadingPdf, setDownloadingPdf] = useState(false)
+  const handleDownloadPdf = async () => {
+    if (!output) return
+    setDownloadingPdf(true)
+    try {
+      const res = await fetch('/api/generate-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool: 'feedback', inputText, tone, skill, confidence, output, guide, cadence })
+      })
+      if (!res.ok) throw new Error('PDF generation failed')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'Feedback Ignite - Development feedback.pdf'
+      document.body.appendChild(a); a.click(); a.remove()
+      URL.revokeObjectURL(url)
+    } catch (err) {
+      setError('The PDF could not be generated. Please try again.')
+    } finally {
+      setDownloadingPdf(false)
+    }
+  }
+
   return (
     <div className="app-shell">
       <header className="page-header">
@@ -283,6 +316,9 @@ export default function App() {
                         </button>
                         <button className="copy-btn" onClick={handleShare} type="button">
                           <ShareIcon /> Share
+                        </button>
+                        <button className="copy-btn" onClick={handleDownloadPdf} disabled={downloadingPdf} type="button">
+                          <DownloadIcon /> {downloadingPdf ? 'Preparing…' : 'PDF'}
                         </button>
                       </div>
                     </div>
