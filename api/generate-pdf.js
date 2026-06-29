@@ -3,7 +3,7 @@
 // Server-side PDFKit, built-in fonts, accent colour per tool.
 // Pattern adapted from OSCI generate-report.js: buffered pages, draw then stamp.
 
-const PDFDocument = require("pdfkit");
+import PDFDocument from "pdfkit";
 
 // ── Per-tool theming ─────────────────────────────────────────────
 // One shared navy frame; the accent switches by tool.
@@ -687,7 +687,7 @@ function stamp(doc, toolName, accent) {
 }
 
 // ── Handler ──────────────────────────────────────────────────────
-module.exports = async (req, res) => {
+export default async function handler(req, res) {
   if (req.method !== "POST") { res.status(405).json({ error: "POST only" }); return; }
   let body = req.body;
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
@@ -732,5 +732,3 @@ module.exports = async (req, res) => {
   doc.end();
 };
 
-// allow local sandbox testing without a server
-module.exports._render = { renderDelegate, renderGoal, renderCoach, renderMeeting, renderFeedback, stamp, TOOLS, makeHelpers, drawCadenceCard, drawInfoCard, parseGuide, parseCadence };
