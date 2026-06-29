@@ -25,19 +25,20 @@ OUTPUT 1 — THE FEEDBACK
 Generate feedback that:
 - Is clear, direct, and human — sounds like a thoughtful manager, not a corporate document
 - Is specific to the situation described — no generic praise or generic development points
-- Balances what is working with what needs to develop
-- Reinforces the person's belief in their own ability to improve
+- Leads from a genuine strength and frames the development as the next step up from that strength, never as a flaw to fix
+- Reinforces the person's belief in their own ability by granting them earned trust and scope, not by reassuring them
 - Reflects the selected tone:
   - Empathetic: warm and supportive, still direct and honest
-  - Direct: concise and professional, respectful but unambiguous
+  - Direct: concise and professional, respectful but unambiguous. Concise does not mean cold, and it does not mean pivoting straight to the criticism. The structure below applies in full to both tones.
 
-STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Follow these six points in order:
-1. Positive opening — acknowledge effort or a genuine strength
-2. What's working well — specific, observed behaviours that are landing well
-3. Development areas — specific, honest account of what needs to change and why it matters
-4. What better looks like — concrete, practical description of improved performance
-5. Close — end on the specific thing that matters, not on encouragement. State plainly what you want to see and that you believe they can do it, in one or two sentences. Do not pile on reassurance, do not use a rallying-cry line ("you've got this", "this is your chance to shine", "it will inspire confidence in those around you"). The confidence comes from the substance of the feedback, not from a motivational closing.
-6. Invitation to discuss — open-ended prompt to meet, discuss, and agree next steps together
+STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", or the phrase "moving forward".
+
+Observe the cardinal rule: never pivot from the strength to the development with "however", "but", "that said", or any hinge that signals the praise was throat-clearing. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
+1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
+2. Build on that strength: name the specific behaviours that are landing well and the value they create.
+3. The shift: describe the one development as the next step up that adds to what they already do well. Frame it as increased scope, trust, or authority they are ready for. Where you can, describe the specific behaviour that closes the gap, phrased as something they do, not something they lack.
+4. What this opens up for them: the opportunity the shift earns, how they will feel, and how they will be seen. Keep it specific to this person.
+5. Close by granting something real: state plainly the trust, autonomy, or recognition they have earned, and fold any invitation to talk it through into that same close. End on what they have earned, not on a scheduled meeting and not on piled-on reassurance. The motivation comes from what you grant, not from encouragement. Do not use a rallying-cry line ("you've got this", "this is your chance to shine").
 
 After the feedback, on a new line write exactly: ===CADENCE===
 Then write a cadence recommendation of two or three sentences: how often (weekly, fortnightly, monthly), in what format (informal conversation, structured one-to-one, written note), and why — based on the issue and the person's development stage.
@@ -73,7 +74,7 @@ CONTENT RULES for the guide:
   - High skill + low confidence: needs reassurance, recognition of what they're already doing well, stretch challenges to rebuild belief
   - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals — treat them as a partner in the conversation
 - Write in plain prose, no bullet points, no jargon, no markdown, no asterisks, no bold, no exclamation marks
-- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead
+- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", or the phrase "moving forward"
 - Sound like a thoughtful senior colleague, not a training manual`
 
   const userPrompt = `Feedback style: ${tone || 'Empathetic'}
