@@ -439,7 +439,7 @@ export default function App() {
               <div className="card-title" style={{ marginBottom: 4 }}>Your notes need sharpening</div>
               <p className="field-hint" style={{ margin: '0 0 12px' }}>{notesCheck.reason}</p>
 
-              <label className="field-label" htmlFor="sharpened-notes">Suggested rewrite, edit it if you like</label>
+              <label className="field-label" htmlFor="sharpened-notes">Your words, tightened. Anything in square brackets is a gap only you can fill.</label>
               <textarea
                 id="sharpened-notes"
                 value={sharpenedNotes}
@@ -451,9 +451,10 @@ export default function App() {
                 <button
                   className="copy-btn"
                   type="button"
+                  disabled={/\[[^\]]+\]/.test(sharpenedNotes)}
                   onClick={() => { setNotesAccepted(true); setInputText(sharpenedNotes); setNotesCheck(null); runGenerate(sharpenedNotes) }}
                 >
-                  Use this
+                  {/\[[^\]]+\]/.test(sharpenedNotes) ? 'Answer the bracketed questions first' : 'Use this'}
                 </button>
                 <button
                   className="copy-btn"

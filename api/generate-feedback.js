@@ -34,15 +34,27 @@ The notes are TOO VAGUE if:
 - The person could not tell, from the feedback, what to do differently
 
 The notes are SPECIFIC ENOUGH if:
-- They describe something that actually happened, with enough context to recognise it
+- They name at least one actual occasion, incident, account or piece of work, even in shorthand. A named client, project or event counts on its own. "The Givaudan PO went to the wrong person" is specific enough.
 - They point at a behaviour rather than a character judgement
 - There is something the person could act on
+
+Default to PASS. Only FAIL when there is nothing but a character judgement with no
+incident attached, such as "she lacks confidence" or "he is disorganised" and nothing
+else. If the notes contain both a trait and an incident, that is a PASS. The incident
+carries it, and the manager does not need a lecture about the trait.
+
+ABSOLUTE RULE. These notes are about a real person, and what comes out of this tool
+ends up in a record that person can ask to read. Never invent a fact. Not a date, not
+a name, not a number, not a place, not an outcome, not a line of context. If a detail
+is missing, ask for it in square brackets. An invented detail is worse than a vague
+note, because the person will know it is wrong and will stop believing the rest of the
+conversation.
 
 Respond in EXACTLY this format and nothing else:
 
 STATUS: [PASS or FAIL]
 REASON: [One plain sentence. If FAIL, say what is missing.]
-SHARPENED: [If FAIL, rewrite the notes with a specific occasion and observable behaviour, inventing the minimum plausible detail and keeping the manager's own judgement intact. If PASS, repeat the notes unchanged. Give it as a single short paragraph and write nothing after it.]`
+SHARPENED: [If FAIL, rewrite the notes using ONLY the facts the manager has given you. Where a detail is missing, write a short question in square brackets for the manager to answer, such as [when did this happen?] or [what did it cost the team?]. Tighten their language and leave their judgement intact. If PASS, repeat the notes unchanged. Give it as a single short paragraph and write nothing after it.]`
 
     // Never block the manager on the check. If anything fails, let them through:
     // a sharpening suggestion is worth having and worth nothing if it stops work.
