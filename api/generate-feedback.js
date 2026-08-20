@@ -184,8 +184,16 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     let guide = ''
 
     if (guideIndex !== -1) {
-      result = full.slice(0, guideIndex).trim()
-      guide = full.slice(guideIndex + guideMarker.length).trim()
+      const head = full.slice(0, guideIndex).trim()
+      const tail = full.slice(guideIndex + guideMarker.length).trim()
+      // If the marker lands first, splitting on it leaves an empty feedback and
+      // a blank screen. Keep whatever text there is over an empty pane.
+      if (head) {
+        result = head
+        guide = tail
+      } else {
+        result = tail
+      }
     }
 
     return res.status(200).json({ result, guide })

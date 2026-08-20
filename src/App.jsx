@@ -201,6 +201,12 @@ export default function App() {
       const result = data.result || ''
       const guideResult = data.guide || ''
 
+      // Never leave the manager looking at an empty pane wondering what happened.
+      if (!result && !guideResult) {
+        setError('The model returned an empty answer. Please try again.')
+        return
+      }
+
       const cadenceMarker = '===CADENCE==='
       const cadenceIndex = result.indexOf(cadenceMarker)
       if (cadenceIndex !== -1) {
