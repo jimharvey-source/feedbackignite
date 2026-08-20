@@ -42,10 +42,21 @@ function makeHelpers(doc, accent) {
       .text(text.toUpperCase(), CONTENT_LEFT, doc.y, { characterSpacing: 1.2, width: CONTENT_WIDTH });
     doc.moveDown(0.2);
   }
+  // A title is a title. If a manager, or a sharpening step, hands us a
+  // paragraph, clamp it rather than setting two pages in headline type.
+  // The full text still appears under "What you told us".
+  function clampTitle(text) {
+    const t = String(text || "").replace(/\s+/g, " ").trim();
+    if (t.length <= 90) return t;
+    const cut = t.slice(0, 90);
+    const lastSpace = cut.lastIndexOf(" ");
+    return (lastSpace > 40 ? cut.slice(0, lastSpace) : cut).replace(/[,;:.\-\s]+$/, "") + "...";
+  }
   function h1(text) {
+    const title = clampTitle(text);
     ensureSpace(40);
-    doc.font(FONT_BOLD).fontSize(22).fillColor(NAVY)
-      .text(text, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
+    doc.font(FONT_BOLD).fontSize(title.length > 55 ? 18 : 22).fillColor(NAVY)
+      .text(title, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
     const y = doc.y + 4;
     doc.moveTo(CONTENT_LEFT, y).lineTo(CONTENT_LEFT + 46, y).lineWidth(2.5).strokeColor(accent).stroke();
     doc.moveDown(0.6);
