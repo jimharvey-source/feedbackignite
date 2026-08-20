@@ -60,7 +60,7 @@ SHARPENED: [If FAIL, rewrite the notes using ONLY the facts the manager has give
     // a sharpening suggestion is worth having and worth nothing if it stops work.
     const check = await complete({
       messages: [{ role: 'user', content: checkPrompt }],
-      maxTokens: 500,
+      maxTokens: 4000,
       temperature: 0.3,
       fast: true
     })
@@ -167,7 +167,8 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     const generated = await complete({
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
-      maxTokens: 2000,
+      maxTokens: 16000,
+      effort: 'low',
       temperature: 0.7
     })
 
