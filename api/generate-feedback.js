@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { inputText, tone, skill, confidence } = req.body || {}
+  const { inputText, tone, skill, confidence, personContext } = req.body || {}
 
   if (!inputText || !inputText.trim()) {
     return res.status(400).json({ error: 'Please enter your feedback notes before generating.' })
@@ -77,10 +77,27 @@ CONTENT RULES for the guide:
 - UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward"
 - Sound like a thoughtful senior colleague, not a training manual`
 
+  // What the manager has already written down about this person, from their
+  // record. Good developmental feedback opens on a genuine, specific strength,
+  // and this is where the genuine, specific strength lives. Without it the
+  // model has to invent one, and an invented strength is the fastest way to
+  // make the praise sound like throat-clearing.
+  const contextBlock = personContext && personContext.trim()
+    ? `
+WHAT THE MANAGER ALREADY KNOWS ABOUT THIS PERSON:
+${personContext.trim()}
+
+Use the strength above as the opening of the feedback, stated as fact, in the
+manager's own terms. If a next step up is given, that is the development point:
+frame it as something that adds to the strength, never as something they lack.
+Do not repeat these notes back verbatim. Do not mention that you were given them.
+`
+    : ''
+
   const userPrompt = `Feedback style: ${tone || 'Empathetic'}
 Person's skill level: ${skillLabel}
 Person's confidence level: ${confidenceLabel}
-
+${contextBlock}
 Manager's notes:
 ${inputText.trim()}`
 

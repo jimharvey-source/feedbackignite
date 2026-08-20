@@ -1,4 +1,18 @@
-import { useState, useRef } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import {
+  createSuiteClient,
+  personIdFromUrl,
+  loadPerson,
+  saveToolSession,
+} from './mi-session.js'
+
+const supabase = createSuiteClient({
+  url: 'https://fdiitxhgfytvlbtokbok.supabase.co',
+  anonKey: 'sb_publishable_JQMFDaTz5g-2ZlitosUTeA_C9B48-Lc',
+})
+
+// Where to send a manager who wants to turn this into coaching.
+const COACH_URL = 'https://coach.management-ignition.com'
 
 const FlameIcon = () => (
   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -86,6 +100,39 @@ export default function App() {
   const [guideCopied, setGuideCopied] = useState(false)
   const outputRef = useRef(null)
 
+  // The suite. Feedback has never had sign-in of its own, and it still does
+  // not need one: arriving from the app carries the session in a cookie. On
+  // its own it works exactly as before, for anyone, with no account.
+  const [user, setUser] = useState(null)
+  const [person, setPerson] = useState(null)
+  const [saveState, setSaveState] = useState('idle')
+  const [savedId, setSavedId] = useState(null)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user || null))
+    return () => sub.subscription.unsubscribe()
+  }, [])
+
+  useEffect(() => {
+    if (!user) { setPerson(null); return }
+    let cancelled = false
+    loadPerson(supabase, personIdFromUrl()).then(p => {
+      if (!cancelled && p) setPerson(p)
+    })
+    return () => { cancelled = true }
+  }, [user])
+
+  // What the record already knows. Good feedback leads from a real strength,
+  // and this is where the real strength is written down.
+  const personContext = person ? [
+    person.first_name ? `Name: ${[person.first_name, person.last_name].filter(Boolean).join(' ')}` : '',
+    person.role_title ? `Role: ${person.role_title}` : '',
+    person.strengths ? `Where they are strong: ${person.strengths}` : '',
+    person.development_focus ? `The next step up for them: ${person.development_focus}` : '',
+    person.motivation ? `What they respond to: ${person.motivation}` : '',
+  ].filter(Boolean).join('\n') : ''
+
   const handleGenerate = async () => {
     if (!inputText.trim()) {
       setError('Please enter your feedback notes before generating.')
@@ -96,13 +143,15 @@ export default function App() {
     setGuide('')
     setCadence('')
     setActiveTab('feedback')
+    setSaveState('idle')
+    setSavedId(null)
     setLoading(true)
 
     try {
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputText: inputText.trim(), tone, skill, confidence })
+        body: JSON.stringify({ inputText: inputText.trim(), tone, skill, confidence, personContext })
       })
 
       if (!res.ok) {
@@ -196,6 +245,40 @@ export default function App() {
     }
   }
 
+  const handleSaveToPerson = async () => {
+    if (!output || !person) return
+    setSaveState('saving')
+    const { data, error: saveError } = await saveToolSession(supabase, {
+      tool: 'feedback',
+      personId: person.id,
+      title: `Feedback for ${person.first_name}`,
+      inputs: { inputText, tone, skill, confidence },
+      outputs: { output, guide, cadence },
+    })
+    if (saveError) {
+      setSaveState('idle')
+      setError('That could not be saved to the person record.')
+      return
+    }
+    setSavedId(data?.id || null)
+    setSaveState('saved')
+  }
+
+  // The chain. Save first, then hand Coach the session so it can open the
+  // conversation from the development point rather than a blank box.
+  const handleTakeToCoaching = async () => {
+    if (!person) return
+    let id = savedId
+    if (!id) {
+      await handleSaveToPerson()
+      id = savedId
+    }
+    const u = new URL(COACH_URL)
+    u.searchParams.set('mi_person', person.id)
+    if (id) u.searchParams.set('mi_from', id)
+    window.open(u.toString(), '_blank', 'noopener')
+  }
+
   const [downloadingPdf, setDownloadingPdf] = useState(false)
   const handleDownloadPdf = async () => {
     if (!output) return
@@ -242,6 +325,27 @@ export default function App() {
             <h1>Turn raw notes into<br /><em>feedback that sticks</em></h1>
             <p>Clear, motivating development feedback — structured around 30 years of leadership research.</p>
           </div>
+
+          {person && (
+            <div className="card" style={{ borderLeft: '3px solid #8B00CC' }}>
+              <div className="card-title" style={{ marginBottom: 6 }}>
+                Feedback for {[person.first_name, person.last_name].filter(Boolean).join(' ')}
+              </div>
+              <p className="field-hint" style={{ marginBottom: person.strengths || person.development_focus ? 10 : 0 }}>
+                This will be written from what you already know about them, and saved to their record.
+              </p>
+              {person.strengths && (
+                <p className="field-hint" style={{ margin: '0 0 6px' }}>
+                  <strong>Where they are strong:</strong> {person.strengths}
+                </p>
+              )}
+              {person.development_focus && (
+                <p className="field-hint" style={{ margin: 0 }}>
+                  <strong>The next step up:</strong> {person.development_focus}
+                </p>
+              )}
+            </div>
+          )}
 
           <div className="card">
             <div className="card-title">Your feedback notes</div>
@@ -320,9 +424,33 @@ export default function App() {
                         <button className="copy-btn" onClick={handleDownloadPdf} disabled={downloadingPdf} type="button">
                           <DownloadIcon /> {downloadingPdf ? 'Preparing…' : 'PDF'}
                         </button>
+                        {person && (
+                          <button
+                            className={`copy-btn${saveState === 'saved' ? ' copied' : ''}`}
+                            onClick={handleSaveToPerson}
+                            disabled={saveState !== 'idle'}
+                            type="button"
+                          >
+                            {saveState === 'saved'
+                              ? <><CheckIcon /> Saved to {person.first_name}</>
+                              : saveState === 'saving' ? 'Saving…' : `Save to ${person.first_name}'s record`}
+                          </button>
+                        )}
                       </div>
                     </div>
                     <textarea className="output-area" value={output} onChange={e => setOutput(e.target.value)} rows={14} />
+
+                    {person && (
+                      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                        <p className="field-hint" style={{ margin: '0 0 8px' }}>
+                          The development point in this feedback is the thing worth coaching. Take it
+                          straight into a conversation with {person.first_name}, with the context carried across.
+                        </p>
+                        <button className="copy-btn" onClick={handleTakeToCoaching} type="button">
+                          Take this into a coaching conversation
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
