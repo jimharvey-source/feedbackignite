@@ -1,3 +1,5 @@
+import { complete } from '../lib/llm.js'
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' })
@@ -9,8 +11,7 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'Please enter your feedback notes before generating.' })
   }
 
-  const apiKey = process.env.OPENAI_API_KEY
-  if (!apiKey) {
+  if (!process.env.ANTHROPIC_API_KEY) {
     return res.status(500).json({ error: 'API key not configured.' })
   }
 
@@ -43,26 +44,15 @@ STATUS: [PASS or FAIL]
 REASON: [One plain sentence. If FAIL, say what is missing.]
 SHARPENED: [If FAIL, rewrite the notes with a specific occasion and observable behaviour, inventing the minimum plausible detail and keeping the manager's own judgement intact. If PASS, repeat the notes unchanged. Give it as a single short paragraph and write nothing after it.]`
 
-    try {
-      const checkRes = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
-        body: JSON.stringify({
-          model: 'gpt-4o',
-          max_tokens: 500,
-          temperature: 0.3,
-          messages: [{ role: 'user', content: checkPrompt }]
-        })
-      })
-      if (!checkRes.ok) {
-        // Never block the manager on the check. If it fails, let them through.
-        return res.status(200).json({ text: 'STATUS: PASS' })
-      }
-      const checkData = await checkRes.json()
-      return res.status(200).json({ text: checkData.choices?.[0]?.message?.content || 'STATUS: PASS' })
-    } catch {
-      return res.status(200).json({ text: 'STATUS: PASS' })
-    }
+    // Never block the manager on the check. If anything fails, let them through:
+    // a sharpening suggestion is worth having and worth nothing if it stops work.
+    const check = await complete({
+      messages: [{ role: 'user', content: checkPrompt }],
+      maxTokens: 500,
+      temperature: 0.3,
+      fast: true
+    })
+    return res.status(200).json({ text: check.ok && check.text ? check.text : 'STATUS: PASS' })
   }
 
   const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]
@@ -153,35 +143,18 @@ Manager's notes:
 ${inputText.trim()}`
 
   try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        max_tokens: 2000,
-        temperature: 0.7,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ]
-      })
+    const generated = await complete({
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userPrompt }],
+      maxTokens: 2000,
+      temperature: 0.7
     })
 
-    if (response.status === 429 || response.status === 503) {
-      return res.status(503).json({ error: 'The service is busy right now. Please try again in a moment.' })
+    if (!generated.ok) {
+      return res.status(generated.status).json({ error: generated.error })
     }
 
-    if (!response.ok) {
-      const errData = await response.json().catch(() => ({}))
-      console.error('OpenAI error:', errData)
-      return res.status(500).json({ error: 'Something went wrong. Please try again.' })
-    }
-
-    const data = await response.json()
-    const full = data.choices?.[0]?.message?.content || ''
+    const full = generated.text
 
     const guideMarker = '===GUIDE==='
     const guideIndex = full.indexOf(guideMarker)
