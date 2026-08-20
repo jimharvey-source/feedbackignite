@@ -3,7 +3,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { inputText, tone, skill, confidence, personContext } = req.body || {}
+  const { inputText, tone, skill, confidence, personContext, mode } = req.body || {}
 
   if (!inputText || !inputText.trim()) {
     return res.status(400).json({ error: 'Please enter your feedback notes before generating.' })
@@ -12,6 +12,57 @@ export default async function handler(req, res) {
   const apiKey = process.env.OPENAI_API_KEY
   if (!apiKey) {
     return res.status(500).json({ error: 'API key not configured.' })
+  }
+
+  // ── The sharpening check ────────────────────────────────────────────
+  // Vague notes produce vague feedback, however good the main prompt is.
+  // This runs first, as a separate lightweight call, and offers the manager
+  // a sharper version they can accept, edit, or ignore.
+  if (mode === 'check') {
+    const checkPrompt = `You are reviewing a manager's feedback notes before they generate developmental feedback.
+
+THE MANAGER'S NOTES:
+${inputText.trim()}
+
+Decide whether the notes are specific enough to produce feedback that would be useful to the person receiving it.
+
+The notes are TOO VAGUE if:
+- They name a trait rather than a behaviour ("she lacks confidence", "he is disorganised")
+- They describe no particular occasion, piece of work, or moment
+- They could be said to almost anyone
+- The person could not tell, from the feedback, what to do differently
+
+The notes are SPECIFIC ENOUGH if:
+- They describe something that actually happened, with enough context to recognise it
+- They point at a behaviour rather than a character judgement
+- There is something the person could act on
+
+Respond in EXACTLY this format and nothing else:
+
+STATUS: [PASS or FAIL]
+REASON: [One plain sentence. If FAIL, say what is missing.]
+SHARPENED: [If FAIL, rewrite the notes with a specific occasion and observable behaviour, inventing the minimum plausible detail and keeping the manager's own judgement intact. If PASS, repeat the notes unchanged. Give it as a single short paragraph and write nothing after it.]`
+
+    try {
+      const checkRes = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          max_tokens: 500,
+          temperature: 0.3,
+          messages: [{ role: 'user', content: checkPrompt }]
+        })
+      })
+      if (!checkRes.ok) {
+        // Never block the manager on the check. If it fails, let them through.
+        return res.status(200).json({ text: 'STATUS: PASS' })
+      }
+      const checkData = await checkRes.json()
+      return res.status(200).json({ text: checkData.choices?.[0]?.message?.content || 'STATUS: PASS' })
+    } catch {
+      return res.status(200).json({ text: 'STATUS: PASS' })
+    }
   }
 
   const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]

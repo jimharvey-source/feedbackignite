@@ -4,6 +4,7 @@ import {
   personIdFromUrl,
   loadPerson,
   saveToolSession,
+  parseSharpened,
 } from './mi-session.js'
 
 const supabase = createSuiteClient({
@@ -108,6 +109,12 @@ export default function App() {
   const [saveState, setSaveState] = useState('idle')
   const [savedId, setSavedId] = useState(null)
 
+  // The sharpening check. Vague notes produce vague feedback however good the
+  // main prompt is, so this runs first and offers a sharper version.
+  const [notesCheck, setNotesCheck] = useState(null)
+  const [sharpenedNotes, setSharpenedNotes] = useState('')
+  const [notesAccepted, setNotesAccepted] = useState(false)
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setUser(data.session?.user || null))
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => setUser(session?.user || null))
@@ -145,13 +152,41 @@ export default function App() {
     setActiveTab('feedback')
     setSaveState('idle')
     setSavedId(null)
+    setNotesCheck(null)
     setLoading(true)
 
+    if (!notesAccepted) {
+      try {
+        const checkRes = await fetch('/api/generate-feedback', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mode: 'check', inputText: inputText.trim() })
+        })
+        const checkData = await checkRes.json()
+        const text = checkData.text || ''
+        const status = (text.match(/STATUS:\s*(PASS|FAIL)/i)?.[1] || 'PASS').toUpperCase()
+        if (status === 'FAIL') {
+          setNotesCheck({ reason: text.match(/REASON:\s*(.+)/i)?.[1]?.trim() || '' })
+          setSharpenedNotes(parseSharpened(text, inputText.trim()))
+          setLoading(false)
+          return
+        }
+      } catch {
+        // The check is a courtesy, not a gate. Carry on.
+      }
+      setNotesAccepted(true)
+    }
+
+    await runGenerate(inputText.trim())
+  }
+
+  const runGenerate = async (notes) => {
+    setLoading(true)
     try {
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputText: inputText.trim(), tone, skill, confidence, personContext })
+        body: JSON.stringify({ inputText: notes, tone, skill, confidence, personContext })
       })
 
       if (!res.ok) {
@@ -354,7 +389,7 @@ export default function App() {
             <textarea
               id="input-notes"
               value={inputText}
-              onChange={e => { setInputText(e.target.value); setError('') }}
+              onChange={e => { setInputText(e.target.value); setError(''); setNotesAccepted(false) }}
               placeholder="e.g. Sarah presented the Q3 numbers to the leadership team last Thursday. She had clearly done the analysis but when challenged by the CEO on the assumptions, she became flustered and couldn't defend her methodology. She needs to be able to hold her ground under pressure and come with stronger narrative, not just numbers."
               rows={7}
             />
@@ -398,6 +433,44 @@ export default function App() {
               }
             </button>
           </div>
+
+          {notesCheck && !notesAccepted && (
+            <div className="card" style={{ borderLeft: '3px solid #D97706' }}>
+              <div className="card-title" style={{ marginBottom: 4 }}>Your notes need sharpening</div>
+              <p className="field-hint" style={{ margin: '0 0 12px' }}>{notesCheck.reason}</p>
+
+              <label className="field-label" htmlFor="sharpened-notes">Suggested rewrite, edit it if you like</label>
+              <textarea
+                id="sharpened-notes"
+                value={sharpenedNotes}
+                onChange={e => setSharpenedNotes(e.target.value)}
+                rows={6}
+              />
+
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
+                <button
+                  className="copy-btn"
+                  type="button"
+                  onClick={() => { setNotesAccepted(true); setInputText(sharpenedNotes); setNotesCheck(null); runGenerate(sharpenedNotes) }}
+                >
+                  Use this
+                </button>
+                <button
+                  className="copy-btn"
+                  type="button"
+                  onClick={() => { setNotesAccepted(true); setNotesCheck(null); runGenerate(inputText.trim()) }}
+                >
+                  Keep what I wrote
+                </button>
+              </div>
+
+              <p className="field-hint" style={{ margin: '12px 0 0' }}>
+                Feedback about a trait is hard to act on. Feedback about a moment is not. This is
+                the difference between someone knowing you are unhappy and someone knowing what to
+                do on Monday.
+              </p>
+            </div>
+          )}
 
           {output && (
             <div className="output-section" ref={outputRef}>

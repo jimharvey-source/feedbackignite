@@ -171,6 +171,26 @@ export async function hasSuiteAccess(client) {
   return Boolean(data);
 }
 
+/**
+ * Pull the SHARPENED value out of a sharpening-check reply.
+ *
+ * The original pattern captured to the end of the response. When the model
+ * answered with paragraphs rather than a phrase, the whole answer became the
+ * goal, task or topic, and then appeared as the document title. A three page
+ * headline is what that looks like from the outside.
+ *
+ * Stop at a blank line or at the next ALL CAPS marker, and refuse anything
+ * longer than the field can sensibly hold. A rewrite that long has not
+ * sharpened anything, so keep what the manager wrote.
+ */
+export function parseSharpened(text, fallback = '', maxLength = 700) {
+  const match = String(text || '')
+    .match(/SHARPENED:\s*([\s\S]+?)(?=\n\s*\n|\n[A-Z][A-Z _]{2,}:|$)/i);
+  const value = (match && match[1] ? match[1] : '').trim();
+  if (!value || value.length > maxLength) return fallback;
+  return value;
+}
+
 /** A session handed across from another tool, for the cross-tool chain. */
 export function sourceSessionIdFromUrl() {
   if (typeof window === 'undefined') return null;
