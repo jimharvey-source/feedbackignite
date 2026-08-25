@@ -67,6 +67,104 @@ SHARPENED: [If FAIL, rewrite the notes using ONLY the facts the manager has give
     return res.status(200).json({ text: check.ok && check.text ? check.text : 'STATUS: PASS' })
   }
 
+  // ── The reframe ─────────────────────────────────────────────────────
+  // Managers write feedback notes when they are annoyed. The original
+  // Feedback Ignite turned "you're an arrogant twat" into "your confidence
+  // can sometimes come across as arrogance" without losing a word of the
+  // message, and that was the most valuable thing it did.
+  //
+  // It works because of one rule: every criticised behaviour is a strength
+  // overplayed or underplayed. Arrogance is confidence without empathy.
+  // Lateness sits next to the commitment that keeps someone working late.
+  // The strength in the opening is not invented to sweeten the pill, it is
+  // the same trait seen from the other end, which is why it reads as true.
+  //
+  // This runs on the quick model, server side, and the manager never sees
+  // it. It changes what the writer is working from, not what the writer does.
+  const reframePrompt = `A manager has written rough notes before giving feedback. They may be
+angry, blunt, or written as a verdict about the person rather than a description of what happened.
+Your job is to read through the heat to what is underneath.
+
+THE MANAGER'S NOTES:
+${inputText.trim()}
+
+ABSOLUTE RULE. Never add a fact. Not a date, not a name, not a number, not a place, not an
+incident, not an outcome. You are re-describing what the manager already wrote, not supplying
+what they left out. An invented detail is worse than a vague note, because the person will know
+it is wrong and will stop believing the rest of the conversation.
+
+Two more rules that matter as much.
+
+Turn character into behaviour. A verdict about who someone is ("arrogant", "lazy", "difficult")
+becomes a description of what they do and the effect it has. Keep the substance. "Arrogant" does
+not become "spirited". It becomes confidence that lands as arrogance, which is the same message
+in words a person can act on.
+
+Find the strength the behaviour is an over-play or under-play of. Confidence overplayed reads as
+arrogance. Care for detail overplayed reads as slowness. Modesty overplayed reads as failing to
+step up. Pace overplayed reads as carelessness. The strength must be genuinely present in what
+the manager described, never invented alongside it.
+
+Respond in EXACTLY this format and nothing else:
+
+BEHAVIOUR: [What the person actually does, observable, in one plain sentence. No judgement words.]
+STRENGTH: [The strength this behaviour is an over-play or under-play of, in a few words.]
+EFFECT: [What it costs, for the work or the people around them, in one plain sentence. If the manager did not say, write: not stated.]
+SEVERITY: [DEVELOPMENTAL if this is ordinary growth. CORRECTIVE if a standard is being missed and must change. FORMAL if the manager has stated a consequence, a deadline for improvement, or a disciplinary process.]`
+
+  let reframed = null
+  const reframeRes = await complete({
+    messages: [{ role: 'user', content: reframePrompt }],
+    maxTokens: 4000,
+    fast: true
+  })
+
+  if (reframeRes.ok && reframeRes.text) {
+    const grab = (label) => {
+      const m = reframeRes.text.match(new RegExp(label + ':\\s*([^\\n]+)'))
+      return m ? m[1].trim() : ''
+    }
+    const behaviour = grab('BEHAVIOUR')
+    const strength = grab('STRENGTH')
+    // Only use it if the two fields that carry the work both came back.
+    if (behaviour && strength) {
+      reframed = {
+        behaviour,
+        strength,
+        effect: grab('EFFECT'),
+        severity: (grab('SEVERITY') || 'DEVELOPMENTAL').toUpperCase(),
+      }
+    }
+  }
+
+  // Never block the manager on the reframe. If it fails, the writer works
+  // from the raw notes, which is where it was before this existed.
+  const severity = reframed?.severity || 'DEVELOPMENTAL'
+
+  const SEVERITY_RULE = {
+    DEVELOPMENTAL: 'This is ordinary development. Write it as an opportunity they have earned.',
+    CORRECTIVE: 'A standard is being missed. Name the standard plainly and be unambiguous that it has to change. Warmth in the language, no softness in the message.',
+    FORMAL: 'The manager has stated a consequence, a deadline, or a disciplinary process. Keep every one of those intact, in plain words, including any timescale they gave. Reframing changes how this reads, never how serious it is. Do not turn a warning into a conversation.',
+  }[severity] || ''
+
+  const reframeBlock = reframed
+    ? `
+WHAT IS ACTUALLY BEING SAID, read out of the manager's rough notes:
+Behaviour: ${reframed.behaviour}
+The strength it is an over-play or under-play of: ${reframed.strength}
+Effect: ${reframed.effect}
+Severity: ${severity}
+
+Open on the strength above, stated as fact. Write the development as that same strength brought
+into balance, never as a flaw to fix. Use the behaviour and the effect as the specifics. Do not
+repeat the manager's own wording back if it was a judgement about the person, and never use their
+insults, their sarcasm or their temper. Nothing here is a new fact: it is what the manager wrote,
+read properly.
+
+${SEVERITY_RULE}
+`
+    : ''
+
   const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]
   const confidenceLabel = ['very low', 'low', 'medium', 'high', 'very high'][((confidence || 3) - 1)]
 
@@ -157,7 +255,7 @@ Do not repeat these notes back verbatim. Do not mention that you were given them
   const userPrompt = `Feedback register: ${tone || 'Empathetic'}
 Person's skill level: ${skillLabel}
 Person's confidence level: ${confidenceLabel}
-${contextBlock}
+${contextBlock}${reframeBlock}
 Manager's notes:
 ${inputText.trim()}
 
