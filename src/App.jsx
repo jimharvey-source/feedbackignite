@@ -566,7 +566,7 @@ export default function App() {
 
       <footer className="page-footer">
         <div className="footer-inner">
-          <p>© 2024 Jim Harvey / <a href="https://themessagebusiness.com" target="_blank" rel="noopener noreferrer">The Message Business</a></p>
+          <p>© 2026 Jim Harvey / <a href="https://themessagebusiness.com" target="_blank" rel="noopener noreferrer">The Message Business</a></p>
           <div className="suite-links">
             <a href="https://delegateignite.themessagebusiness.com" target="_blank" rel="noopener noreferrer">Delegate Ignite</a>
             <a href="https://management-ignition.com" target="_blank" rel="noopener noreferrer">Management Ignition</a>
