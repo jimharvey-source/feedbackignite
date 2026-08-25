@@ -199,7 +199,7 @@ ${SEVERITY_RULE}
 
   EMPATHETIC. 250 to 350 words. Two or three sentences per point. Say plainly what effect the behaviour has on the people around them, and take the person's own account seriously. The warmth is in the attention, never in softening the requirement.
 
-  DIRECT. 150 to 220 words. One sentence per point. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".
+  DIRECT. 150 to 220 words. The floor matters as much as the ceiling. Write four or five paragraphs of two or three sentences, never seven single lines: a column of one-line statements is a bullet list with the bullets taken out, and it reads as a form rather than as something a person wrote and meant. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".
 
   Someone handed both versions should tell them apart at a glance. Neither version is the gentler one.`
     : `- Leads from a genuine strength and frames the development as the next step up from that strength, never as a flaw to fix
@@ -218,13 +218,15 @@ ${SEVERITY_RULE}
 STRUCTURE for the feedback. This is a formal warning, which makes it a record as much as a conversation. Someone may read it a year from now with no memory of the meeting. Follow these points in order and add nothing to them:
 1. The standard. One sentence: what is expected. No preamble.
 2. What has happened against it. Only the manager's own facts, dates and figures. If they gave a count, give the count.
-3. The effect, and only if the manager stated one. If they did not, leave the point out entirely.
+3. The effect, and only if the manager stated one. If they did not, leave the point out entirely. State it as what other people cannot do. "This creates unreliability I cannot depend on" is not a sentence, because nobody depends on unreliability. Say what actually breaks: who is left waiting, what cannot start, what has to be worked around.
 4. What must change. State it as a requirement, in the present tense. Not a suggestion, not something to consider, not something to work on.
 5. The consequence and the timescale, exactly as the manager gave them. Do not soften the words they chose. If they wrote disciplinary, write disciplinary. If they gave three months, write three months.
 6. One sentence offering support or a route to help.
 7. One question asking for the person's own account of what is happening. Punctuate it as a question.
 
-Do not open on praise and do not close on it. Do not add encouragement the manager did not write. Never write that you believe they will turn it around, that you are not saying this to alarm them, that this is not who they really are, or anything else that tells the person how to feel about the warning. If the manager has named something the person does well, you may state it once, in one sentence, and only after point 5. Never invent one.`
+Do not praise the person anywhere in this document. Not at the opening, not at the close, and not folded into the middle as a cushion. "I know you bring real drive to this role" is invented praise about a real person, in a document that may be read back to them in a formal process, and it makes the warning look like the manager was not sure they meant it. If there is something good to say, it belongs in a different conversation on a different day, and the manager can add it themselves.
+
+Do not add encouragement the manager did not write. Never write that you believe they will turn it around, that you are not saying this to alarm them, that this is not who they really are, or anything else that tells the person how to feel about the warning.`
     : `Observe the cardinal rule: never hinge from something good to something that must change with "however", "but", "that said", "although", "yet", or any equivalent. This applies inside a single sentence as much as between sections. "You speak with confidence, but you do not invite input" is exactly the fault: it tells the listener the first half was throat-clearing. Put a full stop in and start the next sentence with the behaviour itself. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
 1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
 2. Build on that strength: name the specific behaviours that are landing well and the value they create.
@@ -326,6 +328,16 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
       return res.status(generated.status).json({ error: generated.error })
     }
 
+    // The model sometimes echoes the scaffold headings from the system prompt
+    // ("OUTPUT 1 - THE FEEDBACK") into the document itself. Telling it not to
+    // is a request. Removing them is a guarantee.
+    const stripScaffold = (text) => {
+      let out = String(text || '').trim()
+      const heading = /^\s*(?:={3,}[A-Z]+={3,}|OUTPUT\s*\d+\b[^\n]*|THE FEEDBACK|THE CONVERSATION GUIDE)\s*(?:\n+|$)/i
+      while (heading.test(out)) out = out.replace(heading, '').trim()
+      return out
+    }
+
     const full = generated.text
 
     const guideMarker = '===GUIDE==='
@@ -347,7 +359,7 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
       }
     }
 
-    return res.status(200).json({ result, guide })
+    return res.status(200).json({ result: stripScaffold(result), guide: stripScaffold(guide) })
 
   } catch (err) {
     console.error('Handler error:', err)
