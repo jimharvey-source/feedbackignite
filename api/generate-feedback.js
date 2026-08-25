@@ -191,12 +191,12 @@ Generate feedback that:
 
 STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward".
 
-Observe the cardinal rule: never pivot from the strength to the development with "however", "but", "that said", or any hinge that signals the praise was throat-clearing. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
+Observe the cardinal rule: never hinge from something good to something that must change with "however", "but", "that said", "although", "yet", or any equivalent. This applies inside a single sentence as much as between sections. "You speak with confidence, but you do not invite input" is exactly the fault: it tells the listener the first half was throat-clearing. Put a full stop in and start the next sentence with the behaviour itself. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
 1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
 2. Build on that strength: name the specific behaviours that are landing well and the value they create.
-3. The shift: describe the one development as the next step up that adds to what they already do well. Frame it as increased scope, trust, or authority they are ready for. Where you can, describe the specific behaviour that closes the gap, phrased as something they do, not something they lack.
+3. The shift: exactly ONE development, never two. If the notes and the record both suggest something, take the one the manager has written about this time and leave the other alone. Describe that single development as the next step up that adds to what they already do well. Frame it as increased scope, trust, or authority they are ready for. Where you can, describe the specific behaviour that closes the gap, phrased as something they do, not something they lack.
 4. What this opens up for them: the opportunity the shift earns, how they will feel, and how they will be seen. Keep it specific to this person.
-5. Close by granting something real: state plainly the trust, autonomy, or recognition they have earned. In the same breath ask for their view and what they want to do about it, so the next step is agreed between the two of you rather than handed down. End on what they have earned, not on a scheduled meeting and not on piled-on reassurance. The motivation comes from what you grant, not from encouragement. Do not use a rallying-cry line ("you've got this", "this is your chance to shine").
+5. Close by granting something real: state plainly the trust, autonomy, or recognition they have earned. In the same breath ask for their view and what they want to do about it, so the next step is agreed between the two of you rather than handed down. If you end on a question, punctuate it as one. End on what they have earned, not on a scheduled meeting and not on piled-on reassurance. The motivation comes from what you grant, not from encouragement. Do not use a rallying-cry line ("you've got this", "this is your chance to shine").
 
 After the feedback, on a new line write exactly: ===CADENCE===
 Then write a cadence recommendation of two or three sentences: how often (weekly, fortnightly, monthly), in what format (informal conversation, structured one-to-one, written note), and why — based on the issue and the person's development stage.
@@ -245,9 +245,10 @@ CONTENT RULES for the guide:
 WHAT THE MANAGER ALREADY KNOWS ABOUT THIS PERSON:
 ${personContext.trim()}
 
-Use the strength above as the opening of the feedback, stated as fact, in the
-manager's own terms. If a next step up is given, that is the development point:
-frame it as something that adds to the strength, never as something they lack.
+This is background about the person, not an agenda for this conversation. Use it
+to make the writing specific and to know how this person takes things. Where the
+manager's notes for this conversation name a behaviour, that is the development
+point and this record does not add a second one.
 Do not repeat these notes back verbatim. Do not mention that you were given them.
 `
     : ''
