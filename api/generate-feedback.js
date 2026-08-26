@@ -194,15 +194,13 @@ ${SEVERITY_RULE}
   const confidenceLabel = ['very low', 'low', 'medium', 'high', 'very high'][((confidence || 3) - 1)]
 
   const registerBlock = isFormal
-    ? `- Leads with the standard and what has happened against it
-- Grants nothing and reassures nobody. It records, it requires, and it offers one route to support
-- Is written in the selected register. Both registers carry the same warning with the same force. What changes is the length and the elaboration, never the seriousness. Follow the word counts. They are the instruction, not a guide.
+    ? `- Opens on the standard and what has happened against it
+- Records, requires, and offers one route to support
+- Is written in the selected register. Both carry the same warning with the same force. What changes is the length and how much room each point gets. Follow the word counts. They are the instruction, not a guide.
 
-  EMPATHETIC. 250 to 350 words. Two or three sentences per point. Say plainly what effect the behaviour has on the people around them, and take the person's own account seriously. The warmth is in the attention, never in softening the requirement.
+  EMPATHETIC. 250 to 350 words. Give the facts and the effect room. Take the person's own account seriously and say so. The warmth is in the attention.
 
-  DIRECT. 150 to 220 words. The floor matters as much as the ceiling. Write four or five paragraphs of two or three sentences, never seven single lines: a column of one-line statements is a bullet list with the bullets taken out, and it reads as a form rather than as something a person wrote and meant. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".
-
-  Someone handed both versions should tell them apart at a glance. Neither version is the gentler one.`
+  DIRECT. 150 to 220 words. Four or five paragraphs. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".`
     : `- Leads from a genuine strength and frames the development as the next step up from that strength, never as a flaw to fix
 - Reinforces the person's belief in their own ability by granting them earned trust and scope, not by reassuring them
 - Is written in the selected register. The two registers produce genuinely different documents, not the same document with different adjectives. Follow the word counts. They are the instruction, not a guide.
@@ -214,20 +212,69 @@ ${SEVERITY_RULE}
   Both registers follow the same five point structure below and the same cardinal rule. What changes is the length, the elaboration and the amount of qualification. Someone handed both versions should tell them apart at a glance, before reading a word.`
 
   const structureBlock = isFormal
-    ? `Never hinge from something good to something that must change with "however", "but", "that said", "although", "yet", or any equivalent. This applies inside a single sentence as much as between sentences. Put a full stop in and start the next sentence with the behaviour itself.
+    ? `STRUCTURE. A formal warning is a record as much as a conversation. Someone may read it a year from
+now with no memory of the meeting, so everything it needs must be on the page.
 
-STRUCTURE for the feedback. This is a formal warning, which makes it a record as much as a conversation. Someone may read it a year from now with no memory of the meeting. Follow these points in order and add nothing to them:
-1. The standard. One sentence: what is expected. No preamble.
-2. What has happened against it. Only the manager's own facts, dates and figures. If they gave a count, give the count.
-3. The effect, and only if the manager stated one. If they did not state one, leave this point out completely and do not reason your way to a likely effect. Where they did state one, say what other people cannot do, in the manager's terms and no further. "This creates unreliability I cannot depend on" is not a sentence, because nobody depends on unreliability: say what the manager said breaks. Never name a colleague, a client, a task, a meeting, or anything the manager had to do about it, unless the manager wrote it down.
-4. What must change. State it as a requirement, in the present tense. Not a suggestion, not something to consider, not something to work on.
-5. The consequence and the timescale, exactly as the manager gave them. Do not soften the words they chose. If they wrote disciplinary, write disciplinary. If they gave three months, write three months.
-6. One sentence offering support or a route to help.
-7. One question asking for the person's own account of what is happening. Punctuate it as a question.
+It covers, in this order: the standard, what has happened against it, what must change, the
+consequence and the timescale the manager gave, an offer of help, and a question inviting the
+person's account. Where the manager stated an effect, it goes with the facts. Where they did not,
+there is no effect and you must not deduce one.
 
-Do not praise the person anywhere in this document. Not at the opening, not at the close, and not folded into the middle as a cushion. "I know you bring real drive to this role" is invented praise about a real person, in a document that may be read back to them in a formal process, and it makes the warning look like the manager was not sure they meant it. If there is something good to say, it belongs in a different conversation on a different day, and the manager can add it themselves.
+Do not number the paragraphs and do not write one paragraph per item. Two items often belong
+together in one paragraph. Vary the length of your sentences and your paragraphs.
 
-Do not add encouragement the manager did not write. Never write that you believe they will turn it around, that you are not saying this to alarm them, that this is not who they really are, or anything else that tells the person how to feel about the warning.`
+Say what is true, in one statement. Do not define it against what it is not. "That is not a small
+pattern, it is a regular one", "a requirement, not a target", "every day, not most days", "this
+starts now, not when things settle down" are the same construction four times over, and it is the
+clearest possible sign that a machine wrote the document. One statement. No mirror.
+
+There is no praise anywhere in a formal warning, at the opening, the close, or folded into the
+middle, and nothing that tells the person how to feel about it. Both make the warning look like
+the manager was unsure they meant it.
+
+Here is the shape. The facts are not yours: the rhythm is.
+
+--- EXAMPLE, DIRECT ---
+Mark, the weekly report is due by five o'clock on Friday. That is the standard for everyone on the
+team and it has not changed.
+
+Over the last two months you have submitted it late six times. Three of those were more than a day
+late. Monday's planning meeting is built on those figures, and twice it has started without them.
+
+I need the report in by five o'clock every Friday, starting this week.
+
+If it is late again in the next two months, we will move to a formal disciplinary process.
+
+If something about the Friday deadline does not work, tell me and I will look at it. What is making
+it hard to hit?
+
+--- EXAMPLE, EMPATHETIC ---
+Mark, I want to talk about the weekly report and be straight with you about where it has got to.
+
+The deadline is five o'clock on Friday. It is the same for everyone, and it exists because Monday's
+planning meeting is built on those figures.
+
+Over the last two months the report has come in late six times. Three of those were more than a day
+late. Twice the Monday meeting has started without your numbers, and the people in the room have had
+to plan around the gap. That is the part I keep coming back to, because it lands on other people
+rather than on you.
+
+What I need from here is the report submitted by five o'clock every Friday, starting this week, as a
+fixed commitment rather than something we revisit.
+
+I have to be clear about what follows if that does not happen. If the report is late again within the
+next two months, we will move to a formal disciplinary process. That is the position, and you should
+have it in full.
+
+I also want your side of it. If there is something about the Friday deadline that does not work, or
+something further up the chain holding you up, I want to know, because that is the kind of thing I can
+do something about.
+
+What is getting in the way of Friday?
+--- END OF EXAMPLES ---
+
+Match the rhythm and the plainness of whichever example matches the selected register. Take nothing
+else from them: not the job, not the deadline, not the numbers, not the name.`
     : `Observe the cardinal rule: never hinge from something good to something that must change with "however", "but", "that said", "although", "yet", or any equivalent. This applies inside a single sentence as much as between sections. "You speak with confidence, but you do not invite input" is exactly the fault: it tells the listener the first half was throat-clearing. Put a full stop in and start the next sentence with the behaviour itself. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
 1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
 2. Build on that strength: name the specific behaviours that are landing well and the value they create.
@@ -420,6 +467,12 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
         { name: 'hinge', re: /(?:^|[.!?]\s+|\n\s*)(?:But|However|That said|Although|Yet)\b/ },
         { name: 'hinge', re: /,\s+(?:but|however|although|yet)\s/i },
         { name: 'speculation', re: /\b(?:childcare|child\s?care|caring\s+responsibilit|health\s+(?:issue|problem)|personal\s+(?:issue|problem)|family\s+(?:issue|problem))\b/i },
+        // "not a small pattern, it is a regular one" / "a requirement, not a
+        // target" / "every day, not most days". The single most recognisable
+        // tell that a machine wrote the sentence, and Jim bans it outright.
+        { name: 'antithesis', re: /\bnot\s+[^.,;:!?]{2,45},\s*(?:it['’]s|it is|they are|but)\b/i },
+        { name: 'antithesis', re: /,\s*not\s+[a-z][^.,;:!?]{2,45}[.?!]/i },
+        { name: 'antithesis', re: /\bnot\s+(?:a|as|an)\s+[^.,;:!?]{2,45}\s+but\s+(?:a|as|an)\b/i },
       ]
       const offencesIn = (t) => BANNED.filter((b) => b.re.test(t)).map((b) => b.name)
 
@@ -434,6 +487,10 @@ joins so the prose still reads properly:
   written a warning they are not sure they meant.
 - hinges with but, however, that said, although or yet, whether it starts a sentence or sits
   inside one after a comma
+- defines something by what it is not: "that is not a small pattern, it is a regular one", "a
+  requirement, not a target", "every day, not most days". Cut the negative half and keep the
+  positive statement on its own. "That is a pattern." "That is a requirement." "Every day."
+  This construction is the clearest sign a machine wrote the document and it must not survive.
 - guesses at why the person is behaving this way. "whether that is a schedule issue, a childcare
   issue, or something else entirely" goes. Speculating about someone's home life in a
   disciplinary document is both invented and the kind of guess that causes a second problem.
