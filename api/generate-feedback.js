@@ -425,22 +425,38 @@ ${inputText.trim()}`
       // A cleanup pass that quietly loses the deadline is worse than the
       // praise it removed. Keep its work only if every load-bearing token
       // is still there and it has not gutted the document.
+      // What must survive is the record: the counts, the clock, and the named
+      // process. Not every stray "one" or "formal", which is what the first
+      // version of this guard protected. It rejected every clean scrub it was
+      // given, so the manager got the unscrubbed draft back and the guard
+      // looked like it was working.
+      const UNIT = 'month|months|week|weeks|day|days|time|times|occasion|occasions|hour|hours|minute|minutes'
+      const NUMBER_WORD = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
       const loadBearing = (t) => {
-        const nums = (t.match(/\b\d+\b/g) || [])
-        const words = (t.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|disciplinary|dismissal|warning|formal|probation|capability)\b/gi) || [])
-          .map((w) => w.toLowerCase())
-        return [...nums, ...words]
+        const digits = t.match(/\b\d+\b/g) || []
+        const counted = (t.match(new RegExp(`\\b(?:${NUMBER_WORD})\\s+(?:${UNIT})\\b`, 'gi')) || [])
+        const process = t.match(/\b(?:disciplinary|dismissal|gross misconduct|written warning|final warning|probation|capability procedure)\b/gi) || []
+        return [...new Set([...digits, ...counted, ...process].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
       }
+
       const needed = loadBearing(before)
       const after = scrub.ok ? stripScaffold(scrub.text) : ''
-      const kept = after && after.length > before.length * 0.5 &&
-        needed.every((tok) => after.toLowerCase().includes(String(tok).toLowerCase()))
+      const haystack = after.toLowerCase().replace(/\s+/g, ' ')
+      const missing = needed.filter((tok) => !haystack.includes(tok))
+      const ratio = after ? after.length / before.length : 0
+      // The token check is the real guard. The length ratio only catches a
+      // scrub that has gutted the document, so it sits low: a short Direct
+      // warning can legitimately lose a third of itself to three deletions.
+      const kept = Boolean(after) && ratio > 0.35 && missing.length === 0
 
       if (kept) {
-        console.log('[feedback] formal scrub applied,', before.length - after.length, 'chars removed')
+        console.log('[feedback] scrub applied,', before.length - after.length, 'chars removed')
         result = after
       } else if (after) {
-        console.warn('[feedback] formal scrub rejected, keeping the original')
+        // Say why. A guard that rejects silently is a guard nobody can fix.
+        console.warn('[feedback] scrub rejected. ratio', ratio.toFixed(2), 'missing:', missing.join(' | ') || 'none')
+      } else {
+        console.warn('[feedback] scrub returned nothing, keeping the original')
       }
     }
 
