@@ -154,22 +154,18 @@ SEVERITY: [DEVELOPMENTAL if this is ordinary growth. CORRECTIVE if a standard is
   const SEVERITY_RULE = {
     DEVELOPMENTAL: 'This is ordinary development. Write it as an opportunity they have earned.',
     CORRECTIVE: 'A standard is being missed. Name the standard plainly and be unambiguous that it has to change. Warmth in the language, no softness in the message.',
-    FORMAL: 'Reframing changes how this reads, never how serious it is or how it is structured. The words the manager chose for the consequence, the process and the timescale are the record. Carry every one of them through unchanged.',
+    FORMAL: 'The manager has stated a consequence, a deadline or a formal process. It goes under "Add or change for impact", in their words, unsoftened, with the timescale intact. Severity changes the words, never the shape: this document still has all three sections, and Continue still appears if there is something true for it.',
   }[severity] || ''
 
-  // Who the document opens on. A formal warning that opens on a strength
-  // reads as ambivalent, and a person who reads it hears the praise and
-  // misses the warning. It is also the weaker document if it is ever read
-  // back in a dispute.
-  const openingRule = isFormal
-    ? `This is a formal warning. It does not open on a strength, and it does not close on one.
-The strength above, if there is one, is context for you and not a paragraph for the person.`
-    : reframed && reframed.strength
-      ? `Open on the strength above, stated as fact. Write the development as that same strength
-brought into balance, never as a flaw to fix.`
-      : `There is no strength in these notes to open on, because a standard is being missed rather
-than a trait over-played. Do not manufacture one. Open on what is happening. If the manager's own
-notes or the person's record name something they do well, you may use that and nothing else.`
+  // The Continue section decides what opens the document, and it is conditional
+  // on there being something true to say. That is the whole guard: a section
+  // that can be left out cannot be padded.
+  const openingRule = reframed && reframed.strength
+    ? `The strength above is real and came out of the manager's own notes. It belongs under
+Continue. Write the change as that same strength brought into balance.`
+    : `There is no strength in these notes: a standard is being missed rather than a trait being
+over-played. Unless the person's record gives you something genuine and specific, leave the
+Continue heading out altogether and open at "Add or change for impact". Do not manufacture one.`
 
   const reframeBlock = reframed
     ? `
@@ -193,94 +189,92 @@ ${SEVERITY_RULE}
   const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]
   const confidenceLabel = ['very low', 'low', 'medium', 'high', 'very high'][((confidence || 3) - 1)]
 
-  const registerBlock = isFormal
-    ? `- Opens on the standard and what has happened against it
-- Records, requires, and offers one route to support
-- Is written in the selected register. Both carry the same warning with the same force. What changes is the length and how much room each point gets. Follow the word counts. They are the instruction, not a guide.
+  const registerBlock = `- Follows the three part structure below in every case, whatever the severity
+- Says plainly what is not acceptable, and says it in the manager's own terms
+- Is written in the selected register. Both carry the same message with the same force. What changes is the room each part gets. Follow the word counts. They are the instruction, not a guide.
 
-  EMPATHETIC. 250 to 350 words. Give the facts and the effect room. Take the person's own account seriously and say so. The warmth is in the attention.
+  EMPATHETIC. 220 to 320 words. Give the evidence and the reason room. Name the effect on the people around them where the manager stated one. Take the person's own account seriously and say so.
 
-  DIRECT. 150 to 220 words. Four or five paragraphs. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".`
-    : `- Leads from a genuine strength and frames the development as the next step up from that strength, never as a flaw to fix
-- Reinforces the person's belief in their own ability by granting them earned trust and scope, not by reassuring them
-- Is written in the selected register. The two registers produce genuinely different documents, not the same document with different adjectives. Follow the word counts. They are the instruction, not a guide.
+  DIRECT. 130 to 200 words. Compress the strength and the evidence into one short paragraph. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".`
 
-  EMPATHETIC. 350 to 450 words. Give each of the five points below room: two or three sentences each. Name the effect their work has on the people around them, and describe what the shift will feel like from the inside. Vary your sentence length. Use their first name once, early. The warmth is in how much attention you give them, not in softening the language.
+  const structureBlock = `STRUCTURE. Three sections, with these exact headings, each on its own line, in this order:
 
-  DIRECT. 180 to 250 words. One sentence per point, two at the most. Say the development once, in a single clean sentence, and do not circle back to it. Describe standards and outcomes rather than feelings. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "one thing to consider", "I would encourage you to". The respect is in not wasting their time.
+Continue
+Add or change for impact
+Actions
 
-  Both registers follow the same five point structure below and the same cardinal rule. What changes is the length, the elaboration and the amount of qualification. Someone handed both versions should tell them apart at a glance, before reading a word.`
+Under Continue: what the person should keep doing, specifically. This section only exists if
+there is something true to put in it. If the manager's notes and the person's record give you
+nothing genuine, leave the heading out entirely and open at "Add or change for impact". Never
+write a strength to fill the space. This is the same rule as the absolute rule above, applied
+to praise.
 
-  const structureBlock = isFormal
-    ? `STRUCTURE. A formal warning is a record as much as a conversation. Someone may read it a year from
-now with no memory of the meeting, so everything it needs must be on the page.
+Under Add or change for impact: the change, the evidence for it, and why it matters, using the
+manager's own facts and figures. Say plainly where something is not acceptable. Where the manager
+has stated a consequence, a timescale or a formal process, it belongs here, in their words, with
+nothing softened, nothing added, and no reassurance wrapped around it.
 
-It covers, in this order: the standard, what has happened against it, what must change, the
-consequence and the timescale the manager gave, an offer of help, and a question inviting the
-person's account. Where the manager stated an effect, it goes with the facts. Where they did not,
-there is no effect and you must not deduce one.
+Under Actions: one short line of instruction, then three to five bullets, each on its own line
+starting with an asterisk and a space. One practical thing per bullet, something the person can
+start this week. Keep each under fifteen words.
 
-Do not number the paragraphs and do not write one paragraph per item. Two items often belong
-together in one paragraph. Vary the length of your sentences and your paragraphs.
+Then close, after the bullets, with one or two sentences: an offer to talk it through, or a
+request to book time and agree a plan together. Saying you believe the person can do this is
+right and belongs here. Explaining that you do not mean to alarm them is not: that is throat
+clearing about the document rather than confidence in the person.
 
 Say what is true, in one statement. Do not define it against what it is not. "That is not a small
-pattern, it is a regular one", "a requirement, not a target", "every day, not most days", "this
-starts now, not when things settle down" are the same construction four times over, and it is the
-clearest possible sign that a machine wrote the document. One statement. No mirror.
+pattern, it is a regular one", "a requirement, not a target", "every day, not most days" are the
+same construction three times over, and it is the clearest sign that a machine wrote the
+document. One statement. No mirror.
 
-There is no praise anywhere in a formal warning, at the opening, the close, or folded into the
-middle, and nothing that tells the person how to feel about it. Both make the warning look like
-the manager was unsure they meant it.
-
-Here is the shape. The facts are not yours: the rhythm is.
-
---- EXAMPLE, DIRECT ---
-Mark, the weekly report is due by five o'clock on Friday. That is the standard for everyone on the
-team and it has not changed.
-
-Over the last two months you have submitted it late six times. Three of those were more than a day
-late. Monday's planning meeting is built on those figures, and twice it has started without them.
-
-I need the report in by five o'clock every Friday, starting this week.
-
-If it is late again in the next two months, we will move to a formal disciplinary process.
-
-If something about the Friday deadline does not work, tell me and I will look at it. What is making
-it hard to hit?
+Here is the format, written by the person whose product this is. Match the register, the bluntness
+and the shape. Take none of the facts.
 
 --- EXAMPLE, EMPATHETIC ---
-Mark, I want to talk about the weekly report and be straight with you about where it has got to.
+Continue
 
-The deadline is five o'clock on Friday. It is the same for everyone, and it exists because Monday's
-planning meeting is built on those figures.
+I appreciate your dedication to your work and the effort you put in. You are a positive, energetic
+team member.
 
-Over the last two months the report has come in late six times. Three of those were more than a day
-late. Twice the Monday meeting has started without your numbers, and the people in the room have had
-to plan around the gap. That is the part I keep coming back to, because it lands on other people
-rather than on you.
+Add or change for impact
 
-What I need from here is the report submitted by five o'clock every Friday, starting this week, as a
-fixed commitment rather than something we revisit.
+You have been late 5 times in the last three months, which is unacceptable because you have missed
+meetings, and clients and team members have noticed.
 
-I have to be clear about what follows if that does not happen. If the report is late again within the
-next two months, we will move to a formal disciplinary process. That is the position, and you should
-have it in full.
+Actions
 
-I also want your side of it. If there is something about the Friday deadline that does not work, or
-something further up the chain holding you up, I want to know, because that is the kind of thing I can
-do something about.
+Please put this right immediately. And here are some suggestions to help.
 
-What is getting in the way of Friday?
---- END OF EXAMPLES ---
+* Set alarms or reminders to help you manage your time effectively.
+* Plan your commute or tasks ahead to avoid any delays.
+* Communicate proactively if you will be late due to unforeseen circumstances.
+* Consider adjusting your morning routine to allow for unexpected delays.
 
-Match the rhythm and the plainness of whichever example matches the selected register. Take nothing
-else from them: not the job, not the deadline, not the numbers, not the name.`
-    : `Observe the cardinal rule: never hinge from something good to something that must change with "however", "but", "that said", "although", "yet", or any equivalent. This applies inside a single sentence as much as between sections. "You speak with confidence, but you do not invite input" is exactly the fault: it tells the listener the first half was throat-clearing. Put a full stop in and start the next sentence with the behaviour itself. The strength is the platform the development sits on, not a setup for criticism. Follow these points in order:
-1. Open on a genuine, specific strength. State it plainly as fact, not as a compliment being banked.
-2. Build on that strength: name the specific behaviours that are landing well and the value they create.
-3. The shift: exactly ONE development, never two. If the notes and the record both suggest something, take the one the manager has written about this time and leave the other alone. Describe that single development as the next step up that adds to what they already do well. Frame it as increased scope, trust, or authority they are ready for. Where you can, describe the specific behaviour that closes the gap, phrased as something they do, not something they lack.
-4. What this opens up for them: the opportunity the shift earns, how they will feel, and how they will be seen. Keep it specific to this person.
-5. Close by granting something real: state plainly the trust, autonomy, or recognition they have earned. In the same breath ask for their view and what they want to do about it, so the next step is agreed between the two of you rather than handed down. If you end on a question, punctuate it as one. End on what they have earned, not on a scheduled meeting and not on piled-on reassurance. The motivation comes from what you grant, not from encouragement. Do not use a rallying-cry line ("you've got this", "this is your chance to shine").`
+I am always available if you would like to talk this through because I want you to succeed in your
+role here and your career. And remember, consistent punctuality shows respect for your colleagues'
+and clients' time and adds to a more efficient work environment. I believe you can make positive
+changes in this area.
+
+--- EXAMPLE, DIRECT ---
+Continue
+
+I appreciate your dedication to your work and the effort you put into everything you do.
+Punctuality is a crucial part of a person's performance at work. Being late can disrupt other
+people and affect team morale and productivity. You have been late 5 times this month.
+
+Add or change for impact
+
+Please make sure you arrive on time, with no exceptions, starting today.
+
+Actions
+
+* Aim to arrive at least 5 minutes early for meetings.
+* Set reminders to leave home earlier in the morning to allow for unexpected delays.
+* Communicate in advance if you are delayed, and make up for lost time by working extra where possible.
+
+Book some time with me to discuss this feedback, and we can agree an action plan together.
+--- END OF EXAMPLES ---`
 
   const systemPrompt = `You are an expert leadership coach helping managers deliver clear, constructive, and motivating feedback.
 
@@ -306,7 +300,7 @@ Generate feedback that:
 - Is specific to the situation described — no generic praise or generic development points
 ${registerBlock}
 
-STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold, no ## headings, no bullet points, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward".
+Plain text. The only headings are the three named below, written as plain words on their own line, and the only bullets are the action bullets, written with an asterisk and a space. No markdown, no bold, no ## headings, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward".
 
 ${structureBlock}
 
@@ -464,6 +458,9 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
       const BANNED = [
         { name: 'reassurance', re: /\bnot\s+(?:saying|raising|telling)\b[^.?!]{0,80}?\bto\s+(?:alarm|frighten|worry|scare|panic)\b/i },
         { name: 'reassurance', re: /\bdo\s+not\s+want\s+(?:that|this)\s+for\s+you\b/i },
+        // Deliberately absent: "I believe you can". That is confidence in the
+        // person, it is in Jim's own examples, and it stays.
+        { name: 'reassurance', re: /\bthis\s+is\s+not\s+who\s+you\s+(?:are|really\s+are)\b/i },
         { name: 'hinge', re: /(?:^|[.!?]\s+|\n\s*)(?:But|However|That said|Although|Yet)\b/ },
         { name: 'hinge', re: /,\s+(?:but|however|although|yet)\s/i },
         { name: 'speculation', re: /\b(?:childcare|child\s?care|caring\s+responsibilit|health\s+(?:issue|problem)|personal\s+(?:issue|problem)|family\s+(?:issue|problem))\b/i },
@@ -478,13 +475,12 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
 
       const RULES = `Delete every sentence, or part of a sentence, that does any of the following, then repair the
 joins so the prose still reads properly:
-- praises the person or credits them with a quality, however briefly ("I know you bring real
-  drive", "I don't think this is about a lack of care", "you clearly care about the work")
-- tells the person how to feel about the warning. Every version of this goes, whatever the verb:
-  "I am not saying this to alarm you", "I am not raising that to alarm you", "I am not saying
-  that to frighten you", "I do not want that for you", "this is not who you are", "I believe you
-  will turn this around". A manager who has to explain that a warning is not meant to alarm has
-  written a warning they are not sure they meant.
+- defends the document rather than addressing the person: "I am not saying this to alarm you",
+  "I am not raising that to alarm you", "I am not saying that to frighten you", "I do not want
+  that for you", "this is not who you are". A manager who has to explain that a warning is not
+  meant to alarm has written a warning they are not sure they meant. Note the difference between
+  that and "I believe you can make positive changes in this area", which is confidence in the
+  person and stays.
 - hinges with but, however, that said, although or yet, whether it starts a sentence or sits
   inside one after a comma
 - defines something by what it is not: "that is not a small pattern, it is a regular one", "a
