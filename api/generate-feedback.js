@@ -176,8 +176,9 @@ notes or the person's record name something they do well, you may use that and n
 WHAT IS ACTUALLY BEING SAID, read out of the manager's rough notes:
 Behaviour: ${reframed.behaviour}${reframed.strength ? `
 The strength it is an over-play or under-play of: ${reframed.strength}` : ''}
-Effect: ${reframed.effect}
-Severity: ${severity}
+${reframed.effect && !/^not stated\.?$/i.test(reframed.effect) ? `Effect: ${reframed.effect}
+` : `The manager did not state an effect. There is no effect to write, and you must not deduce one.
+`}Severity: ${severity}
 
 ${openingRule}
 
@@ -218,7 +219,7 @@ ${SEVERITY_RULE}
 STRUCTURE for the feedback. This is a formal warning, which makes it a record as much as a conversation. Someone may read it a year from now with no memory of the meeting. Follow these points in order and add nothing to them:
 1. The standard. One sentence: what is expected. No preamble.
 2. What has happened against it. Only the manager's own facts, dates and figures. If they gave a count, give the count.
-3. The effect, and only if the manager stated one. If they did not, leave the point out entirely. State it as what other people cannot do. "This creates unreliability I cannot depend on" is not a sentence, because nobody depends on unreliability. Say what actually breaks: who is left waiting, what cannot start, what has to be worked around.
+3. The effect, and only if the manager stated one. If they did not state one, leave this point out completely and do not reason your way to a likely effect. Where they did state one, say what other people cannot do, in the manager's terms and no further. "This creates unreliability I cannot depend on" is not a sentence, because nobody depends on unreliability: say what the manager said breaks. Never name a colleague, a client, a task, a meeting, or anything the manager had to do about it, unless the manager wrote it down.
 4. What must change. State it as a requirement, in the present tense. Not a suggestion, not something to consider, not something to work on.
 5. The consequence and the timescale, exactly as the manager gave them. Do not soften the words they chose. If they wrote disciplinary, write disciplinary. If they gave three months, write three months.
 6. One sentence offering support or a route to help.
@@ -238,6 +239,17 @@ Do not add encouragement the manager did not write. Never write that you believe
 
 The leaders we remember are the ones who saw potential in us, challenged us to rise to it, and
 supported us every step of the way. Write as one of those leaders would write.
+
+ABSOLUTE RULE, and it outranks every other instruction here. Never invent a fact. Not a date, not
+a number, not a name, not an incident, not an outcome, and above all not an action the manager
+took. "I have had to step in personally to cover the gaps your timekeeping created" is exactly
+the sentence that gets read back in a tribunal, and if the manager did not write it, it is false.
+You are working from the manager's notes and the person's record, and from nothing else.
+
+Where a specific would improve the writing and you do not have one, write the general truth or
+leave the point out. A vague sentence is a small problem. An invented one is a serious problem,
+because the person reading it knows it did not happen, and from that moment they disbelieve
+everything else in the document.
 
 You will generate TWO separate outputs. Separate them with exactly: ===GUIDE===
 
@@ -359,7 +371,80 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
       }
     }
 
-    return res.status(200).json({ result: stripScaffold(result), guide: stripScaffold(guide) })
+    result = stripScaffold(result)
+    guide = stripScaffold(guide)
+
+    // ── The scrub ──────────────────────────────────────────────────────
+    // On a formal warning the model keeps reaching for the praise sandwich,
+    // because that is the shape it has seen most. It has been told plainly
+    // not to, with the exact sentences quoted, and it writes them anyway.
+    // So this stops asking. One pass that may only delete and re-stitch,
+    // followed by a check that nothing load-bearing went with it.
+    if (isFormal && result) {
+      const before = result
+      const scrubPrompt = `Below is a formal written warning drafted for a manager, followed by
+the manager's own notes. The warning must not contain anything the notes do not support.
+
+Delete every sentence, or part of a sentence, that does any of the following, then repair the
+joins so the prose still reads properly:
+- praises the person or credits them with a quality, however briefly ("I know you bring real
+  drive", "I don't think this is about a lack of care", "you clearly care about the work")
+- tells the person how to feel about the warning. Every version of this goes, whatever the verb:
+  "I am not saying this to alarm you", "I am not raising that to alarm you", "I do not say this
+  to worry you", "I do not want that for you", "this is not who you are", "I believe you will
+  turn this around". A manager who has to explain that a warning is not meant to alarm has
+  written a warning they are not sure they meant.
+- hinges from something good to the warning with but, however, that said, although or yet
+- states a fact the manager's notes do not contain: a date, a number, a name, an incident, or
+  anything the manager is said to have done about it. "I have had to step in personally to cover
+  the gaps" goes unless the notes say so. This one matters most. Praise that is not true is
+  embarrassing; an invented account of events is the sentence that loses a tribunal.
+
+Work at clause level where a sentence is only half wrong: "I am not raising that to alarm you, I
+am raising it because I want you to know what is at stake" becomes "I am raising it because I
+want you to know what is at stake."
+
+You may only delete, and mend what sits either side of a deletion. Do not add a
+fact, a sentence, a softening, or a heading. Do not reword anything you are keeping. Every
+number, date, timescale, standard and consequence must survive exactly as written.
+
+Return only the corrected warning, nothing else.
+
+--- THE WARNING ---
+${before}
+
+--- THE MANAGER'S NOTES ---
+${inputText.trim()}`
+
+      const scrub = await complete({
+        messages: [{ role: 'user', content: scrubPrompt }],
+        maxTokens: 4000,
+        fast: true,
+      })
+
+      // A cleanup pass that quietly loses the deadline is worse than the
+      // praise it removed. Keep its work only if every load-bearing token
+      // is still there and it has not gutted the document.
+      const loadBearing = (t) => {
+        const nums = (t.match(/\b\d+\b/g) || [])
+        const words = (t.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|disciplinary|dismissal|warning|formal|probation|capability)\b/gi) || [])
+          .map((w) => w.toLowerCase())
+        return [...nums, ...words]
+      }
+      const needed = loadBearing(before)
+      const after = scrub.ok ? stripScaffold(scrub.text) : ''
+      const kept = after && after.length > before.length * 0.5 &&
+        needed.every((tok) => after.toLowerCase().includes(String(tok).toLowerCase()))
+
+      if (kept) {
+        console.log('[feedback] formal scrub applied,', before.length - after.length, 'chars removed')
+        result = after
+      } else if (after) {
+        console.warn('[feedback] formal scrub rejected, keeping the original')
+      }
+    }
+
+    return res.status(200).json({ result, guide })
 
   } catch (err) {
     console.error('Handler error:', err)
