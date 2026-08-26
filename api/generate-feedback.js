@@ -263,7 +263,12 @@ STRUCTURE for the feedback. Plain prose only: no markdown, no asterisks, no bold
 
 ${structureBlock}
 
-After the feedback, on a new line write exactly: ===CADENCE===
+The feedback ends at its closing question. Nothing follows it: no summary, no next steps, and
+above all no advice about how often to review progress. That advice belongs after the marker
+below and the manager sees it in a separate panel. A warning that ends by recommending fortnightly
+one-to-ones has run two documents together.
+
+After the feedback, on a new line, write exactly: ===CADENCE===
 Then write a cadence recommendation of two or three sentences: how often (weekly, fortnightly, monthly), in what format (informal conversation, structured one-to-one, written note), and why — based on the issue and the person's development stage.
 Then list three cadence tags in square brackets on the next line — e.g. [Weekly] [Informal one-to-one] [Skills development]
 
@@ -374,27 +379,64 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     result = stripScaffold(result)
     guide = stripScaffold(guide)
 
+    if (!full.includes('===CADENCE===')) {
+      // Without the marker the cadence advice stays in the body of the
+      // feedback, which is how a warning ends up recommending fortnightly
+      // one-to-ones. Nothing to repair safely here, but it must not be silent.
+      console.warn('[feedback] no CADENCE marker: cadence advice may be inside the feedback')
+    }
+
     // ── The scrub ──────────────────────────────────────────────────────
     // On a formal warning the model keeps reaching for the praise sandwich,
-    // because that is the shape it has seen most. It has been told plainly
-    // not to, with the exact sentences quoted, and it writes them anyway.
-    // So this stops asking. One pass that may only delete and re-stitch,
-    // followed by a check that nothing load-bearing went with it.
+    // because that is the shape it has seen most. Told plainly not to, with
+    // the exact sentences quoted, it writes them anyway. So this stops asking.
+    //
+    // Three things learned the hard way, all of them from live output:
+    //   1. The quick model is not good enough at this. It removed 237
+    //      characters and left "I am not saying that to alarm you", which is
+    //      quoted verbatim in its own instructions. The scrub runs on the
+    //      writing model now. It is one extra call, on formal warnings only.
+    //   2. A first pass misses things. So the output is checked mechanically,
+    //      and anything that survives is quoted back for one more pass.
+    //   3. The guard rejected a clean scrub at ratio 0.34 with nothing
+    //      missing. Length was never the thing that mattered.
     if (isFormal && result) {
-      const before = result
-      const scrubPrompt = `Below is a formal written warning drafted for a manager, followed by
-the manager's own notes. The warning must not contain anything the notes do not support.
+      const UNIT = 'month|months|week|weeks|day|days|time|times|occasion|occasions|hour|hours|minute|minutes'
+      const NUMBER_WORD = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
 
-Delete every sentence, or part of a sentence, that does any of the following, then repair the
+      // The record: what the person and anyone reading it later must still find.
+      const loadBearing = (t) => {
+        const digits = t.match(/\b\d+\b/g) || []
+        const counted = t.match(new RegExp(`\\b(?:${NUMBER_WORD})\\s+(?:${UNIT})\\b`, 'gi')) || []
+        const process = t.match(/\b(?:disciplinary|dismissal|gross misconduct|written warning|final warning|probation|capability procedure)\b/gi) || []
+        return [...new Set([...digits, ...counted, ...process].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
+      }
+
+      // What must not be there. Regex cannot judge invented praise, but it can
+      // catch these exactly, which is why they are worth catching this way.
+      const BANNED = [
+        { name: 'reassurance', re: /\bnot\s+(?:saying|raising|telling)\b[^.?!]{0,80}?\bto\s+(?:alarm|frighten|worry|scare|panic)\b/i },
+        { name: 'reassurance', re: /\bdo\s+not\s+want\s+(?:that|this)\s+for\s+you\b/i },
+        { name: 'hinge', re: /(?:^|[.!?]\s+|\n\s*)(?:But|However|That said|Although|Yet)\b/ },
+        { name: 'hinge', re: /,\s+(?:but|however|although|yet)\s/i },
+        { name: 'speculation', re: /\b(?:childcare|child\s?care|caring\s+responsibilit|health\s+(?:issue|problem)|personal\s+(?:issue|problem)|family\s+(?:issue|problem))\b/i },
+      ]
+      const offencesIn = (t) => BANNED.filter((b) => b.re.test(t)).map((b) => b.name)
+
+      const RULES = `Delete every sentence, or part of a sentence, that does any of the following, then repair the
 joins so the prose still reads properly:
 - praises the person or credits them with a quality, however briefly ("I know you bring real
   drive", "I don't think this is about a lack of care", "you clearly care about the work")
 - tells the person how to feel about the warning. Every version of this goes, whatever the verb:
-  "I am not saying this to alarm you", "I am not raising that to alarm you", "I do not say this
-  to worry you", "I do not want that for you", "this is not who you are", "I believe you will
-  turn this around". A manager who has to explain that a warning is not meant to alarm has
+  "I am not saying this to alarm you", "I am not raising that to alarm you", "I am not saying
+  that to frighten you", "I do not want that for you", "this is not who you are", "I believe you
+  will turn this around". A manager who has to explain that a warning is not meant to alarm has
   written a warning they are not sure they meant.
-- hinges from something good to the warning with but, however, that said, although or yet
+- hinges with but, however, that said, although or yet, whether it starts a sentence or sits
+  inside one after a comma
+- guesses at why the person is behaving this way. "whether that is a schedule issue, a childcare
+  issue, or something else entirely" goes. Speculating about someone's home life in a
+  disciplinary document is both invented and the kind of guess that causes a second problem.
 - states a fact the manager's notes do not contain: a date, a number, a name, an incident, or
   anything the manager is said to have done about it. "I have had to step in personally to cover
   the gaps" goes unless the notes say so. This one matters most. Praise that is not true is
@@ -404,57 +446,61 @@ Work at clause level where a sentence is only half wrong: "I am not raising that
 am raising it because I want you to know what is at stake" becomes "I am raising it because I
 want you to know what is at stake."
 
-You may only delete, and mend what sits either side of a deletion. Do not add a
-fact, a sentence, a softening, or a heading. Do not reword anything you are keeping. Every
-number, date, timescale, standard and consequence must survive exactly as written.
+You may only delete, and mend what sits either side of a deletion. Do not add a fact, a sentence,
+a softening, or a heading. Do not reword anything you are keeping. Every number, date, timescale,
+standard and consequence must survive exactly as written.
 
-Return only the corrected warning, nothing else.
+Return only the corrected warning, nothing else.`
+
+      const runScrub = async (draft, quoted) => {
+        const prompt = `Below is a formal written warning drafted for a manager, followed by the
+manager's own notes. The warning must not contain anything the notes do not support.
+
+${RULES}${quoted ? `
+
+A previous pass left these in. Remove them: ${quoted}` : ''}
 
 --- THE WARNING ---
-${before}
+${draft}
 
 --- THE MANAGER'S NOTES ---
 ${inputText.trim()}`
 
-      const scrub = await complete({
-        messages: [{ role: 'user', content: scrubPrompt }],
-        maxTokens: 4000,
-        fast: true,
-      })
-
-      // A cleanup pass that quietly loses the deadline is worse than the
-      // praise it removed. Keep its work only if every load-bearing token
-      // is still there and it has not gutted the document.
-      // What must survive is the record: the counts, the clock, and the named
-      // process. Not every stray "one" or "formal", which is what the first
-      // version of this guard protected. It rejected every clean scrub it was
-      // given, so the manager got the unscrubbed draft back and the guard
-      // looked like it was working.
-      const UNIT = 'month|months|week|weeks|day|days|time|times|occasion|occasions|hour|hours|minute|minutes'
-      const NUMBER_WORD = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
-      const loadBearing = (t) => {
-        const digits = t.match(/\b\d+\b/g) || []
-        const counted = (t.match(new RegExp(`\\b(?:${NUMBER_WORD})\\s+(?:${UNIT})\\b`, 'gi')) || [])
-        const process = t.match(/\b(?:disciplinary|dismissal|gross misconduct|written warning|final warning|probation|capability procedure)\b/gi) || []
-        return [...new Set([...digits, ...counted, ...process].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
+        // Not the quick model. It is not good enough at this.
+        const r = await complete({ messages: [{ role: 'user', content: prompt }], maxTokens: 8000 })
+        return r.ok ? stripScaffold(r.text) : ''
       }
 
-      const needed = loadBearing(before)
-      const after = scrub.ok ? stripScaffold(scrub.text) : ''
-      const haystack = after.toLowerCase().replace(/\s+/g, ' ')
-      const missing = needed.filter((tok) => !haystack.includes(tok))
-      const ratio = after ? after.length / before.length : 0
-      // The token check is the real guard. The length ratio only catches a
-      // scrub that has gutted the document, so it sits low: a short Direct
-      // warning can legitimately lose a third of itself to three deletions.
-      const kept = Boolean(after) && ratio > 0.35 && missing.length === 0
+      const original = result
+      const needed = loadBearing(original)
+      // Length is not the guard. A warning under 400 characters has lost its
+      // substance whatever the ratio says, and that is all the floor is for.
+      const passes = (candidate) => {
+        const hay = candidate.toLowerCase().replace(/\s+/g, ' ')
+        const missing = needed.filter((tok) => !hay.includes(tok))
+        return { ok: candidate.length >= 400 && missing.length === 0, missing }
+      }
 
-      if (kept) {
-        console.log('[feedback] scrub applied,', before.length - after.length, 'chars removed')
-        result = after
-      } else if (after) {
-        // Say why. A guard that rejects silently is a guard nobody can fix.
-        console.warn('[feedback] scrub rejected. ratio', ratio.toFixed(2), 'missing:', missing.join(' | ') || 'none')
+      let cleaned = await runScrub(original, '')
+      let verdict = cleaned ? passes(cleaned) : { ok: false, missing: [] }
+
+      if (verdict.ok) {
+        const left = offencesIn(cleaned)
+        if (left.length) {
+          console.warn('[feedback] scrub pass 1 left:', left.join(', '), '- running pass 2')
+          const second = await runScrub(cleaned, left.join(', '))
+          const secondVerdict = second ? passes(second) : { ok: false, missing: [] }
+          if (secondVerdict.ok) {
+            cleaned = second
+            verdict = secondVerdict
+          } else {
+            console.warn('[feedback] scrub pass 2 rejected, keeping pass 1. missing:', secondVerdict.missing.join(' | ') || 'none')
+          }
+        }
+        console.log('[feedback] scrub applied,', original.length - cleaned.length, 'chars removed. remaining:', offencesIn(cleaned).join(', ') || 'none')
+        result = cleaned
+      } else if (cleaned) {
+        console.warn('[feedback] scrub rejected. length', cleaned.length, 'missing:', verdict.missing.join(' | ') || 'none')
       } else {
         console.warn('[feedback] scrub returned nothing, keeping the original')
       }
