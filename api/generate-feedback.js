@@ -373,10 +373,25 @@ Do not repeat these notes back verbatim. Do not mention that you were given them
 `
     : ''
 
+  // When the reframe found no strength and the record is empty, there is
+  // nothing a Continue section could honestly contain. A conditional rule
+  // buried in the system prompt has lost this argument four times running, so
+  // say it flatly, in the user turn, where the model is actually looking.
+  const noContinue = !(reframed && reframed.strength) && !(personContext && personContext.trim())
+  const continueDirective = noContinue
+    ? `
+THIS DOCUMENT HAS NO CONTINUE SECTION. The manager has written nothing good about this person and
+the record holds nothing either. Do not write the Continue heading. Do not write a sentence of
+praise anywhere else instead. "I know you care about doing good work", "I know your drive is real"
+and anything like them are facts about a real person that nobody has established. Begin at
+"Add or change for impact".
+`
+    : ''
+
   const userPrompt = `Feedback register: ${tone || 'Empathetic'}
 Person's skill level: ${skillLabel}
 Person's confidence level: ${confidenceLabel}
-${contextBlock}${reframeBlock}
+${contextBlock}${reframeBlock}${continueDirective}
 Manager's notes:
 ${inputText.trim()}
 
@@ -432,6 +447,9 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     for (const heading of ['Add or change for impact', 'Actions']) {
       if (!result.includes(heading)) console.warn('[feedback] missing heading:', heading)
     }
+    if (noContinue && /^Continue\s*$/im.test(result)) {
+      console.warn('[feedback] Continue section written when there was nothing to put in it')
+    }
 
     if (!full.includes('===CADENCE===')) {
       // Without the marker the cadence advice stays in the body of the
@@ -463,7 +481,10 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
         const digits = t.match(/\b\d+\b/g) || []
         const counted = t.match(new RegExp(`\\b(?:${NUMBER_WORD})\\s+(?:${UNIT})\\b`, 'gi')) || []
         const process = t.match(/\b(?:disciplinary|dismissal|gross misconduct|written warning|final warning|probation|capability procedure)\b/gi) || []
-        return [...new Set([...digits, ...counted, ...process].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
+        // The headings are part of the record too. A scrub that eats them
+        // returns a document with no shape, which is what happened at 09:24.
+        const headings = t.match(/^(?:Add or change for impact|Actions)$/gim) || []
+        return [...new Set([...digits, ...counted, ...process, ...headings].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
       }
 
       // What must not be there. Regex cannot judge invented praise, but it can
@@ -512,9 +533,19 @@ Work at clause level where a sentence is only half wrong: "I am not raising that
 am raising it because I want you to know what is at stake" becomes "I am raising it because I
 want you to know what is at stake."
 
-You may only delete, and mend what sits either side of a deletion. Do not add a fact, a sentence,
-a softening, or a heading. Do not reword anything you are keeping. Every number, date, timescale,
-standard and consequence must survive exactly as written.
+The headings "Continue", "Add or change for impact" and "Actions" are structure, not prose. Leave
+every one that is there exactly where it is. Never delete a heading, never add one, never merge two
+sections into one. If deleting a sentence empties the Continue section completely, delete the
+Continue heading with it and leave the other two standing.
+
+Never leave a stump. If removing a sentence orphans the one after it, so that it opens with "It is",
+"This is", "That is" or "They are" and now refers to nothing, delete that sentence too. "I know your
+drive is real. It is about a basic standard that has not been met." is a scar, and it reads worse
+than the sentence you removed.
+
+You may only delete, and mend what sits either side of a deletion. Do not add a fact, a sentence, or
+a softening. Do not reword anything you are keeping. Every number, date, timescale, standard and
+consequence must survive exactly as written.
 
 Return only the corrected warning, nothing else.`
 
