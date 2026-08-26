@@ -209,6 +209,13 @@ nothing genuine, leave the heading out entirely and open at "Add or change for i
 write a strength to fill the space. This is the same rule as the absolute rule above, applied
 to praise.
 
+"Add or change for impact" and "Actions" always appear, on every document, whatever the severity.
+"Continue" is the only heading that may be left out.
+
+When you leave Continue out, the praise goes with it. Do not move a strength you could not justify
+into the next section, and do not open "Add or change for impact" with it. A document with no
+Continue heading opens on the change.
+
 Under Add or change for impact: the change, the evidence for it, and why it matters, using the
 manager's own facts and figures. Say plainly where something is not acceptable. Where the manager
 has stated a consequence, a timescale or a formal process, it belongs here, in their words, with
@@ -220,7 +227,9 @@ start this week. Keep each under fifteen words.
 
 Then close, after the bullets, with one or two sentences: an offer to talk it through, or a
 request to book time and agree a plan together. Saying you believe the person can do this is
-right and belongs here. Explaining that you do not mean to alarm them is not: that is throat
+right and belongs here: "I believe you can make positive changes in this area" claims nothing
+about them that has to be true. "I know you have the drive to turn this round" does, and unless
+the manager wrote that the person has drive, it is an invented fact hiding in an encouragement. Explaining that you do not mean to alarm them is not: that is throat
 clearing about the document rather than confidence in the person.
 
 Say what is true, in one statement. Do not define it against what it is not. "That is not a small
@@ -420,6 +429,10 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     result = stripScaffold(result)
     guide = stripScaffold(guide)
 
+    for (const heading of ['Add or change for impact', 'Actions']) {
+      if (!result.includes(heading)) console.warn('[feedback] missing heading:', heading)
+    }
+
     if (!full.includes('===CADENCE===')) {
       // Without the marker the cadence advice stays in the body of the
       // feedback, which is how a warning ends up recommending fortnightly
@@ -456,7 +469,7 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
       // What must not be there. Regex cannot judge invented praise, but it can
       // catch these exactly, which is why they are worth catching this way.
       const BANNED = [
-        { name: 'reassurance', re: /\bnot\s+(?:saying|raising|telling)\b[^.?!]{0,80}?\bto\s+(?:alarm|frighten|worry|scare|panic)\b/i },
+        { name: 'reassurance', re: /\bnot\s+(?:say|saying|raise|raising|tell|telling|mention|mentioning|share|sharing)\b[^.?!]{0,80}?\bto\s+(?:alarm|frighten|worry|scare|panic|upset)\b/i },
         { name: 'reassurance', re: /\bdo\s+not\s+want\s+(?:that|this)\s+for\s+you\b/i },
         // Deliberately absent: "I believe you can". That is confidence in the
         // person, it is in Jim's own examples, and it stays.
@@ -475,9 +488,9 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
 
       const RULES = `Delete every sentence, or part of a sentence, that does any of the following, then repair the
 joins so the prose still reads properly:
-- defends the document rather than addressing the person: "I am not saying this to alarm you",
-  "I am not raising that to alarm you", "I am not saying that to frighten you", "I do not want
-  that for you", "this is not who you are". A manager who has to explain that a warning is not
+- defends the document rather than addressing the person, in any tense: "I am not saying this to
+  alarm you", "I am not raising that to alarm you", "I do not say that to frighten you", "I do not
+  want that for you", "this is not who you are". A manager who has to explain that a warning is not
   meant to alarm has written a warning they are not sure they meant. Note the difference between
   that and "I believe you can make positive changes in this area", which is confidence in the
   person and stays.
@@ -519,8 +532,15 @@ ${draft}
 --- THE MANAGER'S NOTES ---
 ${inputText.trim()}`
 
-        // Not the quick model. It is not good enough at this.
-        const r = await complete({ messages: [{ role: 'user', content: prompt }], maxTokens: 8000 })
+        // Not the quick model: it is not good enough at this. But moving to the
+        // writing model without an effort setting cost us a live run, because
+        // max_tokens counts thinking tokens and Sonnet spent all 8000 of them
+        // thinking and returned nothing. Deletion needs no deliberation.
+        const r = await complete({
+          messages: [{ role: 'user', content: prompt }],
+          maxTokens: 16000,
+          effort: 'low',
+        })
         return r.ok ? stripScaffold(r.text) : ''
       }
 
