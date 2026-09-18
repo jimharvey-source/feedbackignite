@@ -227,10 +227,14 @@ function sliderLabel(v) { return SLIDER_LABELS[Number(v) - 1] || String(v || "")
 // ── Render the Feedback report ───────────────────────────────────
 function renderFeedback(doc, data, accent) {
   const H = makeHelpers(doc, accent);
-  const { inputText = "", tone = "", skill, confidence, output = "", guide = "", cadence = "" } = data;
+  const { inputText = "", tone = "", skill, confidence, output = "", guide = "", cadence = "", managerName = "", recipientName = "" } = data;
 
   H.eyebrow("Feedback Ignite · Development feedback");
-  H.h1("Development feedback");
+  H.h1(recipientName ? `Development feedback for ${recipientName}` : "Development feedback");
+  if (managerName || recipientName) {
+    doc.font(FONT_BODY).fontSize(10.5).fillColor(MUTED)
+      .text(`${managerName ? `Prepared by ${managerName}` : ""}${managerName && recipientName ? " · " : ""}${recipientName ? `For ${recipientName}` : ""}`, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
+  }
   const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
   doc.font(FONT_BODY).fontSize(9.5).fillColor(MUTED).text(today, CONTENT_LEFT, doc.y);
   doc.moveDown(1);

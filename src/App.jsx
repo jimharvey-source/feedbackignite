@@ -87,6 +87,8 @@ function SliderInput({ label, hint, value, onChange }) {
 }
 
 export default function App() {
+  const [managerName, setManagerName] = useState('')
+  const [recipientName, setRecipientName] = useState('')
   const [inputText, setInputText] = useState('')
   const [tone, setTone] = useState('Empathetic')
   const [skill, setSkill] = useState(3)
@@ -125,7 +127,10 @@ export default function App() {
     if (!user) { setPerson(null); return }
     let cancelled = false
     loadPerson(supabase, personIdFromUrl()).then(p => {
-      if (!cancelled && p) setPerson(p)
+      if (cancelled || !p) return
+      setPerson(p)
+      // Pre-fill from the record, without overwriting anything already typed.
+      setRecipientName(prev => prev || [p.first_name, p.last_name].filter(Boolean).join(' '))
     })
     return () => { cancelled = true }
   }, [user])
@@ -140,7 +145,22 @@ export default function App() {
     person.motivation ? `What they respond to: ${person.motivation}` : '',
   ].filter(Boolean).join('\n') : ''
 
+  // Names as they will appear in the writing. Capitalised the way Delegate does it.
+  const capitaliseName = (name) => name.trim().split(/\s+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
+  const names = {
+    managerName: capitaliseName(managerName),
+    recipientName: capitaliseName(recipientName),
+  }
+
   const handleGenerate = async () => {
+    if (!managerName.trim()) {
+      setError('Please enter your name before generating.')
+      return
+    }
+    if (!recipientName.trim()) {
+      setError('Please enter the name of the person this feedback is for.')
+      return
+    }
     if (!inputText.trim()) {
       setError('Please enter your feedback notes before generating.')
       return
@@ -186,7 +206,7 @@ export default function App() {
       const res = await fetch('/api/generate-feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ inputText: notes, tone, skill, confidence, personContext })
+        body: JSON.stringify({ inputText: notes, tone, skill, confidence, personContext, ...names })
       })
 
       if (!res.ok) {
@@ -238,7 +258,7 @@ export default function App() {
 
   const handleMail = () => {
     if (!output) return
-    const subject = encodeURIComponent('Your development feedback')
+    const subject = encodeURIComponent(names.recipientName ? `Development feedback for ${names.recipientName}` : 'Your development feedback')
     const body = encodeURIComponent(output)
     window.location.href = `mailto:?subject=${subject}&body=${body}`
   }
@@ -293,7 +313,7 @@ export default function App() {
       tool: 'feedback',
       personId: person.id,
       title: `Feedback for ${person.first_name}`,
-      inputs: { inputText, tone, skill, confidence },
+      inputs: { inputText, tone, skill, confidence, ...names },
       outputs: { output, guide, cadence },
     })
     if (saveError) {
@@ -328,14 +348,14 @@ export default function App() {
       const res = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: 'feedback', inputText, tone, skill, confidence, output, guide, cadence })
+        body: JSON.stringify({ tool: 'feedback', inputText, tone, skill, confidence, output, guide, cadence, ...names })
       })
       if (!res.ok) throw new Error('PDF generation failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = 'Feedback Ignite - Development feedback.pdf'
+      a.download = names.recipientName ? `Feedback Ignite - ${names.recipientName}.pdf` : 'Feedback Ignite - Development feedback.pdf'
       document.body.appendChild(a); a.click(); a.remove()
       URL.revokeObjectURL(url)
     } catch (err) {
@@ -389,6 +409,35 @@ export default function App() {
           )}
 
           <div className="card">
+            <div className="card-title">Who this is for</div>
+            <div className="name-fields">
+              <div className="name-field">
+                <label className="field-label" htmlFor="manager-name">Manager name</label>
+                <input
+                  id="manager-name"
+                  type="text"
+                  className="text-input"
+                  value={managerName}
+                  onChange={e => { setManagerName(e.target.value); setError('') }}
+                  placeholder="Your name"
+                  autoComplete="name"
+                />
+              </div>
+              <div className="name-field">
+                <label className="field-label" htmlFor="recipient-name">Recipient name</label>
+                <input
+                  id="recipient-name"
+                  type="text"
+                  className="text-input"
+                  value={recipientName}
+                  onChange={e => { setRecipientName(e.target.value); setError('') }}
+                  placeholder="Their name"
+                />
+              </div>
+            </div>
+
+            <div className="divider" />
+
             <div className="card-title">Your feedback notes</div>
             <label className="field-label" htmlFor="input-notes">What do you want to say?</label>
             <p className="field-hint">Describe what happened, in what context, and what you want this person to develop. The more specific you are, the more useful the output.</p>
@@ -402,7 +451,7 @@ export default function App() {
 
             <div className="divider" />
 
-            <div className="card-title">About this person</div>
+            <div className="card-title">About {names.recipientName || 'this person'}</div>
             <SliderInput
               label="Skill level"
               hint="How capable are they at this type of task or responsibility?"
@@ -568,7 +617,7 @@ export default function App() {
         <div className="footer-inner">
           <p>© 2026 Jim Harvey / <a href="https://themessagebusiness.com" target="_blank" rel="noopener noreferrer">The Message Business</a></p>
           <div className="suite-links">
-            <a href="https://delegateignite.themessagebusiness.com" target="_blank" rel="noopener noreferrer">Delegate Ignite</a>
+            <a href="/">Feedback Ignite</a>
             <a href="https://management-ignition.com" target="_blank" rel="noopener noreferrer">Management Ignition</a>
           </div>
         </div>

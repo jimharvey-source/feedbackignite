@@ -5,7 +5,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' })
   }
 
-  const { inputText, tone, skill, confidence, personContext, mode } = req.body || {}
+  const { inputText, tone, skill, confidence, personContext, mode, managerName, recipientName } = req.body || {}
 
   if (!inputText || !inputText.trim()) {
     return res.status(400).json({ error: 'Please enter your feedback notes before generating.' })
@@ -388,13 +388,28 @@ and anything like them are facts about a real person that nobody has established
 `
     : ''
 
+  // The two names. Real, given by the manager, so they may be used. They are
+  // the only facts about either person that arrive from outside the notes.
+  const manager = (managerName || '').trim()
+  const recipient = (recipientName || '').trim()
+  const recipientFirst = recipient.split(/\s+/)[0] || ''
+  const managerFirst = manager.split(/\s+/)[0] || ''
+  const namesBlock = (manager || recipient)
+    ? `${manager ? `Manager writing this: ${manager}\n` : ''}${recipient ? `Person it is for: ${recipient}\n` : ''}`
+    : ''
+  const namesDirective = (recipientFirst || managerFirst)
+    ? `
+${recipientFirst ? `Open the document with "${recipientFirst}," on its own line before the first heading, and use the name "${recipientFirst}" where a name reads naturally, no more than twice in the body. ` : ''}${managerFirst ? `After the closing sentences of the feedback, and before the ===CADENCE=== line, sign off with "${managerFirst}" on its own line. ` : ''}Do not invent a surname, a title or a role for either person.
+`
+    : ''
+
   const userPrompt = `Feedback register: ${tone || 'Empathetic'}
-Person's skill level: ${skillLabel}
+${namesBlock}Person's skill level: ${skillLabel}
 Person's confidence level: ${confidenceLabel}
 ${contextBlock}${reframeBlock}${continueDirective}
 Manager's notes:
 ${inputText.trim()}
-
+${namesDirective}
 Write the feedback in the ${tone || 'Empathetic'} register, to the word count that register specifies.`
 
   try {
