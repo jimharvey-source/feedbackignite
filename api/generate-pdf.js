@@ -225,18 +225,71 @@ const SLIDER_LABELS = ["Very low", "Low", "Medium", "High", "Very high"];
 function sliderLabel(v) { return SLIDER_LABELS[Number(v) - 1] || String(v || ""); }
 
 // ── Render the Feedback report ───────────────────────────────────
+// The feedback body has three fixed headings and asterisk bullets. On the
+// page the headings are the structure, so they are set as headings, and the
+// bullets are bullets rather than typed characters.
+const FEEDBACK_HEADINGS = ["Continue", "Add or change for impact", "Actions"];
+function drawFeedbackBody(doc, H, accent, text) {
+  const lines = String(text || "").replace(/\r/g, "").split("\n");
+  let para = [];
+  const flush = () => {
+    if (!para.length) return;
+    H.body(para.join("\n"));
+    para = [];
+  };
+  lines.forEach((raw) => {
+    const line = raw.trim();
+    if (!line) { flush(); return; }
+    if (FEEDBACK_HEADINGS.some((h) => h.toLowerCase() === line.toLowerCase())) {
+      flush();
+      H.ensureSpace(30);
+      doc.moveDown(0.3);
+      doc.font(FONT_BOLD).fontSize(11.5).fillColor(NAVY)
+        .text(line, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
+      doc.moveDown(0.3);
+      return;
+    }
+    const m = line.match(/^[*\-•]\s+(.*)$/);
+    if (m) {
+      flush();
+      H.ensureSpace(20);
+      const y = doc.y;
+      doc.font(FONT_BODY).fontSize(10.5).fillColor(accent).text("•", CONTENT_LEFT + 4, y, { lineBreak: false });
+      doc.font(FONT_BODY).fontSize(10.5).fillColor(INK)
+        .text(m[1], CONTENT_LEFT + 18, y, { width: CONTENT_WIDTH - 18, lineGap: 3 });
+      doc.moveDown(0.25);
+      return;
+    }
+    para.push(line);
+  });
+  flush();
+}
+
+// Two readers, two documents. "recipient" is the clean copy the person gets:
+// the feedback and nothing else. Anything else is the manager's pack: notes,
+// cadence, the feedback, and the conversation guide.
 function renderFeedback(doc, data, accent) {
   const H = makeHelpers(doc, accent);
-  const { inputText = "", tone = "", skill, confidence, output = "", guide = "", cadence = "", managerName = "", recipientName = "" } = data;
-
-  H.eyebrow("Feedback Ignite · Development feedback");
-  H.h1(recipientName ? `Development feedback for ${recipientName}` : "Development feedback");
-  if (managerName || recipientName) {
-    doc.font(FONT_BODY).fontSize(10.5).fillColor(MUTED)
-      .text(`${managerName ? `Prepared by ${managerName}` : ""}${managerName && recipientName ? " · " : ""}${recipientName ? `For ${recipientName}` : ""}`, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
-  }
+  const { inputText = "", tone = "", skill, confidence, output = "", guide = "", cadence = "", managerName = "", recipientName = "", variant = "manager" } = data;
   const today = new Date().toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
-  doc.font(FONT_BODY).fontSize(9.5).fillColor(MUTED).text(today, CONTENT_LEFT, doc.y);
+
+  if (variant === "recipient") {
+    H.eyebrow("Feedback Ignite");
+    H.h1(recipientName ? `Feedback for ${recipientName}` : "Development feedback");
+    doc.font(FONT_BODY).fontSize(10.5).fillColor(MUTED)
+      .text(`${managerName ? `From ${managerName} · ` : ""}${today}`, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
+    doc.moveDown(1);
+    H.rule();
+    drawFeedbackBody(doc, H, accent, output);
+    return;
+  }
+
+  H.eyebrow("Feedback Ignite · Manager's pack");
+  H.h1(recipientName ? `Feedback for ${recipientName}` : "Development feedback");
+  doc.font(FONT_BODY).fontSize(10.5).fillColor(MUTED)
+    .text(`${managerName ? `Prepared by ${managerName} · ` : ""}${today}`, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
+  doc.font(FONT_BODY).fontSize(9.5).fillColor(MUTED)
+    .text("For you, not for sharing. Your notes, the cadence and the conversation guide are in here.", CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
   doc.moveDown(1);
   H.rule();
 
@@ -268,11 +321,11 @@ function renderFeedback(doc, data, accent) {
     doc.moveDown(0.4);
   }
 
-  // The feedback message — own page (the thing to share)
+  // The feedback message, own page. The recipient's copy is the separate download.
   doc.addPage();
-  H.eyebrow("Your feedback, reframed");
-  H.h2("Feedback message");
-  H.body(output);
+  H.eyebrow(recipientName ? `The feedback for ${recipientName}` : "The feedback");
+  H.h2(recipientName ? `Feedback for ${recipientName}` : "Feedback message");
+  drawFeedbackBody(doc, H, accent, output);
 
   // The conversation guide — own page (manager only)
   const sections = parseGuide(guide);
@@ -714,7 +767,7 @@ export default async function handler(req, res) {
     (body.prepResult && body.prepResult.meetingTitle) ||
     (body.form && (body.form.taskTitle || body.form.goalTitle || body.form.coachingTopic)) ||
     (body.prepForm && body.prepForm.meetingTitle) ||
-    (toolKey === "feedback" ? "Development feedback" : "report");
+    (toolKey === "feedback" ? (body.recipientName ? `Feedback for ${body.recipientName}` : "Development feedback") : "report");
   const doc = new PDFDocument({
     size: PAGE.size,
     margins: { top: 56, bottom: 56, left: 56, right: 56 },

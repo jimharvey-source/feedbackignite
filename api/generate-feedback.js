@@ -209,6 +209,11 @@ nothing genuine, leave the heading out entirely and open at "Add or change for i
 write a strength to fill the space. This is the same rule as the absolute rule above, applied
 to praise.
 
+The strength under Continue must be a different thing from the behaviour under "Add or change for
+impact". Praising someone's conviction and then naming conviction as what went wrong is the praise
+sandwich with the seam hidden, and the person will feel the seam. If the only strength the material
+offers is the one that caused the damage, leave Continue out.
+
 "Add or change for impact" and "Actions" always appear, on every document, whatever the severity.
 "Continue" is the only heading that may be left out.
 
@@ -221,21 +226,33 @@ manager's own facts and figures. Say plainly where something is not acceptable. 
 has stated a consequence, a timescale or a formal process, it belongs here, in their words, with
 nothing softened, nothing added, and no reassurance wrapped around it.
 
-Under Actions: one short line of instruction, then three to five bullets, each on its own line
+Where the manager's notes show that the manager made the final decision, or went along with the
+person's recommendation, say so in one plain sentence in the manager's voice and own it: "I made the
+call, and that is mine to carry." Then say what is needed from the person. A document that puts the
+whole weight on the person for a decision the manager made reads as unfair, and from that line on
+nothing else in it lands.
+
+Under Actions: one short line of instruction, then two to four bullets, each on its own line
 starting with an asterisk and a space. One practical thing per bullet, something the person can
-start this week. Keep each under fifteen words.
+start this week. Keep each under fifteen words. Every bullet is a different action: if two say the
+same thing in different words, keep one. Where the notes describe a situation that is still live,
+a person, a client or a piece of work still exposed today, the first bullet is what to do about
+that now, with a time to report back. The process actions for next time come after it.
 
 Then close, after the bullets, with one or two sentences: an offer to talk it through, or a
 request to book time and agree a plan together. Saying you believe the person can do this is
 right and belongs here: "I believe you can make positive changes in this area" claims nothing
 about them that has to be true. "I know you have the drive to turn this round" does, and unless
 the manager wrote that the person has drive, it is an invented fact hiding in an encouragement. Explaining that you do not mean to alarm them is not: that is throat
-clearing about the document rather than confidence in the person.
+clearing about the document rather than confidence in the person. Do not tell the person how they
+feel or how this will sit with them. "I know this will weigh on you" is a fact about them that
+nobody established. Say you want to talk it through, and when.
 
 Say what is true, in one statement. Do not define it against what it is not. "That is not a small
 pattern, it is a regular one", "a requirement, not a target", "every day, not most days" are the
 same construction three times over, and it is the clearest sign that a machine wrote the
-document. One statement. No mirror.
+document. One statement. No mirror. "This is not about whether your instinct was reasonable. It is
+that..." is the same construction with a full stop in the middle. Start at "It is that" and say it.
 
 Here is the format, written by the person whose product this is. Match the register, the bluntness
 and the shape. Take none of the facts.
@@ -309,7 +326,7 @@ Generate feedback that:
 - Is specific to the situation described — no generic praise or generic development points
 ${registerBlock}
 
-Plain text. The only headings are the three named below, written as plain words on their own line, and the only bullets are the action bullets, written with an asterisk and a space. No markdown, no bold, no ## headings, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward".
+Plain text. The only headings are the three named below, written as plain words on their own line, and the only bullets are the action bullets, written with an asterisk and a space. No markdown, no bold, no ## headings, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", "genuinely", or the phrase "moving forward".
 
 ${structureBlock}
 
@@ -352,8 +369,9 @@ CONTENT RULES for the guide:
   - High skill + low confidence: needs reassurance, recognition of what they're already doing well, stretch challenges to rebuild belief
   - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals — treat them as a partner in the conversation
 - Write in plain prose, no bullet points, no jargon, no markdown, no asterisks, no bold, no exclamation marks
-- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", or the phrase "moving forward"
-- Sound like a thoughtful senior colleague, not a training manual`
+- UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", "genuinely", or the phrase "moving forward"
+- Say what is true in one statement. Do not define it against what it is not. "Direct, not padded" and "a proper conversation, not a corridor chat" are both banned. Write "direct." Write "a proper sit-down conversation."
+- Sound like a thoughtful senior colleague`
 
   // What the manager has already written down about this person, from their
   // record. Good developmental feedback opens on a genuine, specific strength,
@@ -487,7 +505,7 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
     //      and anything that survives is quoted back for one more pass.
     //   3. The guard rejected a clean scrub at ratio 0.34 with nothing
     //      missing. Length was never the thing that mattered.
-    if (isFormal && result) {
+    if (result) {
       const UNIT = 'month|months|week|weeks|day|days|time|times|occasion|occasions|hour|hours|minute|minutes'
       const NUMBER_WORD = 'one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve'
 
@@ -519,8 +537,19 @@ Write the feedback in the ${tone || 'Empathetic'} register, to the word count th
         { name: 'antithesis', re: /\bnot\s+[^.,;:!?]{2,45},\s*(?:it['’]s|it is|they are|but)\b/i },
         { name: 'antithesis', re: /,\s*not\s+[a-z][^.,;:!?]{2,45}[.?!]/i },
         { name: 'antithesis', re: /\bnot\s+(?:a|as|an)\s+[^.,;:!?]{2,45}\s+but\s+(?:a|as|an)\b/i },
+        // "This is not about X. It is that Y." Same mirror, full stop in the middle.
+        { name: 'antithesis', re: /\b(?:this|that|it)\s+is\s+not\s+about\b/i },
       ]
       const offencesIn = (t) => BANNED.filter((b) => b.re.test(t)).map((b) => b.name)
+
+      // Formal warnings are always scrubbed. Everything else is checked
+      // mechanically first and scrubbed only when something is found, so an
+      // ordinary run pays for the check and nothing more. Until 19 September
+      // the scrub ran on formal documents only, and a developmental one went
+      // out with four antitheses in it.
+      const preOffences = offencesIn(result)
+      const shouldScrub = isFormal || preOffences.length > 0
+      if (!isFormal) console.log('[feedback] scrub check:', preOffences.length ? preOffences.join(', ') : 'clean')
 
       const RULES = `Delete every sentence, or part of a sentence, that does any of the following, then repair the
 joins so the prose still reads properly:
@@ -538,7 +567,7 @@ joins so the prose still reads properly:
   This construction is the clearest sign a machine wrote the document and it must not survive.
 - guesses at why the person is behaving this way. "whether that is a schedule issue, a childcare
   issue, or something else entirely" goes. Speculating about someone's home life in a
-  disciplinary document is both invented and the kind of guess that causes a second problem.
+  feedback document is both invented and the kind of guess that causes a second problem.
 - states a fact the manager's notes do not contain: a date, a number, a name, an incident, or
   anything the manager is said to have done about it. "I have had to step in personally to cover
   the gaps" goes unless the notes say so. This one matters most. Praise that is not true is
@@ -562,17 +591,17 @@ You may only delete, and mend what sits either side of a deletion. Do not add a 
 a softening. Do not reword anything you are keeping. Every number, date, timescale, standard and
 consequence must survive exactly as written.
 
-Return only the corrected warning, nothing else.`
+Return only the corrected document, nothing else.`
 
       const runScrub = async (draft, quoted) => {
-        const prompt = `Below is a formal written warning drafted for a manager, followed by the
-manager's own notes. The warning must not contain anything the notes do not support.
+        const prompt = `Below is a feedback document drafted for a manager, followed by the manager's
+own notes. The document must not contain anything the notes do not support.
 
 ${RULES}${quoted ? `
 
 A previous pass left these in. Remove them: ${quoted}` : ''}
 
---- THE WARNING ---
+--- THE DOCUMENT ---
 ${draft}
 
 --- THE MANAGER'S NOTES ---
@@ -590,6 +619,7 @@ ${inputText.trim()}`
         return r.ok ? stripScaffold(r.text) : ''
       }
 
+      if (shouldScrub) {
       const original = result
       const needed = loadBearing(original)
       // Length is not the guard. A warning under 400 characters has lost its
@@ -622,6 +652,7 @@ ${inputText.trim()}`
         console.warn('[feedback] scrub rejected. length', cleaned.length, 'missing:', verdict.missing.join(' | ') || 'none')
       } else {
         console.warn('[feedback] scrub returned nothing, keeping the original')
+      }
       }
     }
 

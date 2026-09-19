@@ -340,28 +340,32 @@ export default function App() {
     window.open(u.toString(), '_blank', 'noopener')
   }
 
-  const [downloadingPdf, setDownloadingPdf] = useState(false)
-  const handleDownloadPdf = async () => {
+  // Two PDFs for two readers. The recipient's copy is the feedback alone.
+  // The manager's pack carries the notes, the cadence and the guide, and is
+  // never the thing to hand over.
+  const [downloadingPdf, setDownloadingPdf] = useState('')
+  const handleDownloadPdf = async (variant) => {
     if (!output) return
-    setDownloadingPdf(true)
+    setDownloadingPdf(variant)
     try {
       const res = await fetch('/api/generate-pdf', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ tool: 'feedback', inputText, tone, skill, confidence, output, guide, cadence, ...names })
+        body: JSON.stringify({ tool: 'feedback', variant, inputText, tone, skill, confidence, output, guide, cadence, ...names })
       })
       if (!res.ok) throw new Error('PDF generation failed')
       const blob = await res.blob()
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = names.recipientName ? `Feedback Ignite - ${names.recipientName}.pdf` : 'Feedback Ignite - Development feedback.pdf'
+      const who = names.recipientName || 'Development feedback'
+      a.download = variant === 'recipient' ? `Feedback for ${who}.pdf` : `Feedback Ignite - ${who} - manager's pack.pdf`
       document.body.appendChild(a); a.click(); a.remove()
       URL.revokeObjectURL(url)
     } catch (err) {
       setError('The PDF could not be generated. Please try again.')
     } finally {
-      setDownloadingPdf(false)
+      setDownloadingPdf('')
     }
   }
 
@@ -550,8 +554,11 @@ export default function App() {
                         <button className="copy-btn" onClick={handleShare} type="button">
                           <ShareIcon /> Share
                         </button>
-                        <button className="copy-btn" onClick={handleDownloadPdf} disabled={downloadingPdf} type="button">
-                          <DownloadIcon /> {downloadingPdf ? 'Preparing…' : 'PDF'}
+                        <button className="copy-btn" onClick={() => handleDownloadPdf('recipient')} disabled={!!downloadingPdf} type="button">
+                          <DownloadIcon /> {downloadingPdf === 'recipient' ? 'Preparing…' : `PDF for ${names.recipientName.split(' ')[0] || 'them'}`}
+                        </button>
+                        <button className="copy-btn" onClick={() => handleDownloadPdf('manager')} disabled={!!downloadingPdf} type="button">
+                          <DownloadIcon /> {downloadingPdf === 'manager' ? 'Preparing…' : "Manager's pack"}
                         </button>
                         {person && (
                           <button
