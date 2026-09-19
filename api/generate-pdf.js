@@ -323,7 +323,7 @@ function renderFeedback(doc, data, accent) {
 
   // The feedback message, own page. The recipient's copy is the separate download.
   doc.addPage();
-  H.eyebrow(recipientName ? `The feedback for ${recipientName}` : "The feedback");
+  H.eyebrow(recipientName ? `To share with ${recipientName}` : "To share");
   H.h2(recipientName ? `Feedback for ${recipientName}` : "Feedback message");
   drawFeedbackBody(doc, H, accent, output);
 

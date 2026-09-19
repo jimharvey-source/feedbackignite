@@ -428,7 +428,9 @@ ${contextBlock}${reframeBlock}${continueDirective}
 Manager's notes:
 ${inputText.trim()}
 ${namesDirective}
-Write the feedback in the ${tone || 'Empathetic'} register, to the word count that register specifies.`
+Write the feedback in the ${tone || 'Empathetic'} register, to the word count that register specifies.
+Every fact in it must be in the manager's notes above. If you are about to explain why something
+happened and the notes do not say why, leave the why out.`
 
   try {
     const generated = await complete({
@@ -655,6 +657,25 @@ ${inputText.trim()}`
       }
       }
     }
+
+    // Enforced, not instructed. On 19 September the scrub ran twice on a
+    // developmental document and still left ", not just in passing", and the
+    // writer produced a "Continue" heading with nothing under it, which the
+    // prompt forbids in three places. Both are mechanical, so both are cut here.
+    //
+    // The tail cut removes only the comma-led negative half of a sentence,
+    // ", not just in passing." / ", not a lecture.", which is Jim's own rule:
+    // keep the positive statement, drop the mirror.
+    const dropEmptyContinue = (t) =>
+      String(t || '').replace(/^Continue[ \t]*\n+(?=(?:Add or change for impact|Actions)[ \t]*$)/im, '')
+    const cutNotTail = (t) =>
+      String(t || '').replace(/,\s*not\s+(?:just\s+|only\s+|merely\s+)?[a-z][^.,;:!?\n]{1,45}(?=[.?!])/gi, '')
+
+    const beforeFix = result.length + guide.length
+    result = cutNotTail(dropEmptyContinue(result))
+    guide = cutNotTail(guide)
+    const removed = beforeFix - (result.length + guide.length)
+    if (removed > 0) console.log('[feedback] mechanical fix removed', removed, 'chars')
 
     return res.status(200).json({ result, guide })
 
