@@ -225,10 +225,10 @@ const SLIDER_LABELS = ["Very low", "Low", "Medium", "High", "Very high"];
 function sliderLabel(v) { return SLIDER_LABELS[Number(v) - 1] || String(v || ""); }
 
 // ── Render the Feedback report ───────────────────────────────────
-// The feedback body has three fixed headings and asterisk bullets. On the
-// page the headings are the structure, so they are set as headings, and the
-// bullets are bullets rather than typed characters.
-const FEEDBACK_HEADINGS = ["Continue", "Add or change for impact", "Actions"];
+// The feedback is a letter: a salutation, paragraphs, an optional list of
+// suggestions, a sign-off. Since 19 September there are no headings in it.
+// The beats it is written in are the writer's scaffold and never reach the
+// page. Asterisk lines are set as bullets.
 function drawFeedbackBody(doc, H, accent, text) {
   const lines = String(text || "").replace(/\r/g, "").split("\n");
   let para = [];
@@ -240,15 +240,6 @@ function drawFeedbackBody(doc, H, accent, text) {
   lines.forEach((raw) => {
     const line = raw.trim();
     if (!line) { flush(); return; }
-    if (FEEDBACK_HEADINGS.some((h) => h.toLowerCase() === line.toLowerCase())) {
-      flush();
-      H.ensureSpace(30);
-      doc.moveDown(0.3);
-      doc.font(FONT_BOLD).fontSize(11.5).fillColor(NAVY)
-        .text(line, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
-      doc.moveDown(0.3);
-      return;
-    }
     const m = line.match(/^[*\-•]\s+(.*)$/);
     if (m) {
       flush();

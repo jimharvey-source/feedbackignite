@@ -89,26 +89,25 @@ THE MANAGER'S NOTES:
 ${inputText.trim()}
 
 ABSOLUTE RULE. Never add a fact. Not a date, not a name, not a number, not a place, not an
-incident, not an outcome. You are re-describing what the manager already wrote, not supplying
-what they left out. An invented detail is worse than a vague note, because the person will know
-it is wrong and will stop believing the rest of the conversation.
+incident, not an outcome. You are re-describing what the manager already wrote. An invented
+detail is worse than a vague note, because the person will know it is wrong and will stop
+believing the rest of the conversation.
 
 Two more rules that matter as much.
 
 Turn character into behaviour. A verdict about who someone is ("arrogant", "lazy", "difficult")
-becomes a description of what they do and the effect it has. Keep the substance. "Arrogant" does
-not become "spirited". It becomes confidence that lands as arrogance, which is the same message
-in words a person can act on.
+becomes a description of what they do and the effect it has. Keep the substance. "Arrogant"
+becomes confidence that lands as arrogance, which is the same message in words a person can act
+on.
 
 Find the strength the behaviour is an over-play or under-play of, if there is one. Confidence
 overplayed reads as arrogance. Care for detail overplayed reads as slowness. Modesty overplayed
 reads as failing to step up. Pace overplayed reads as carelessness.
 
 Often there is no strength there at all. A person who is repeatedly late, absent, or missing
-deadlines is not over-playing anything, they are missing a standard. Naming "drive" or
-"commitment" in that gap would be an invented fact wearing a compliment's clothes, and the
-ABSOLUTE RULE covers it. When you cannot name a strength out of the manager's own material,
-write none. Never reach for one.
+deadlines is missing a standard. Naming "drive" or "commitment" in that gap would be an invented
+fact wearing a compliment's clothes, and the ABSOLUTE RULE covers it. When you cannot name a
+strength out of the manager's own material, write none. Never reach for one.
 
 Respond in EXACTLY this format and nothing else:
 
@@ -153,20 +152,13 @@ SEVERITY: [DEVELOPMENTAL if this is ordinary growth. CORRECTIVE if a standard is
 
   const SEVERITY_RULE = {
     DEVELOPMENTAL: 'This is ordinary development. Write it as an opportunity they have earned.',
-    CORRECTIVE: 'A standard is being missed. Name the standard plainly and be unambiguous that it has to change. Warmth in the language, no softness in the message.',
-    FORMAL: 'The manager has stated a consequence, a deadline or a formal process. It goes under "Add or change for impact", in their words, unsoftened, with the timescale intact. Severity changes the words, never the shape: this document still has all three sections, and Continue still appears if there is something true for it.',
+    CORRECTIVE: 'A standard is being missed. Name the standard plainly and be unambiguous that it has to change. Warm language. A firm message.',
+    FORMAL: 'The manager has stated a consequence, a deadline or a formal process. It goes in the second beat, in their words, unsoftened, with the timescale intact. Severity changes the words. The shape stays the same.',
   }[severity] || ''
 
-  // The Continue section decides what opens the document, and it is conditional
-  // on there being something true to say. That is the whole guard: a section
-  // that can be left out cannot be padded.
-  const openingRule = reframed && reframed.strength
-    ? `The strength above is real and came out of the manager's own notes. It belongs under
-Continue. Write the change as that same strength brought into balance.`
-    : `There is no strength in these notes: a standard is being missed rather than a trait being
-over-played. Unless the person's record gives you something genuine and specific, leave the
-Continue heading out altogether and open at "Add or change for impact". Do not manufacture one.`
-
+  // The reframe is a second reader of the same notes. Its lines help the
+  // writer see the behaviour under the heat. They are never a source of new
+  // facts, and the notes outrank them wherever the two differ.
   const reframeBlock = reframed
     ? `
 WHAT IS ACTUALLY BEING SAID, read out of the manager's rough notes:
@@ -176,11 +168,13 @@ ${reframed.effect && !/^not stated\.?$/i.test(reframed.effect) ? `Effect: ${refr
 ` : `The manager did not state an effect. There is no effect to write, and you must not deduce one.
 `}Severity: ${severity}
 
-${openingRule}
+${reframed.strength
+  ? `The strength above came out of the manager's own notes. It is context for the first beat: one sentence, where it is true. Write the change as that same strength brought into balance.`
+  : `No strength was found in these notes. Do not supply one. The first beat is the facts alone.`}
 
 Use the behaviour and the effect as the specifics. Do not repeat the manager's own wording back
 if it was a judgement about the person, and never use their insults, their sarcasm or their
-temper. Nothing here is a new fact: it is what the manager wrote, read properly.
+temper. Where these lines and the manager's notes differ, the notes win.
 
 ${SEVERITY_RULE}
 `
@@ -189,39 +183,24 @@ ${SEVERITY_RULE}
   const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]
   const confidenceLabel = ['very low', 'low', 'medium', 'high', 'very high'][((confidence || 3) - 1)]
 
-  const registerBlock = `- Follows the three part structure below in every case, whatever the severity
-- Says plainly what is not acceptable, and says it in the manager's own terms
-- Is written in the selected register. Both carry the same message with the same force. What changes is the room each part gets. Follow the word counts. They are the instruction, not a guide.
+  const registerBlock = `- Says plainly what is not acceptable, and says it in the manager's own terms
+- Is written in the selected register. Both carry the same message with the same force. What changes is the room each part gets. Follow the word counts. They are the instruction.
 
-  EMPATHETIC. 220 to 320 words. Give the evidence and the reason room. Name the effect on the people around them where the manager stated one. Take the person's own account seriously and say so.
+  EMPATHETIC. 120 to 200 words. Give the evidence and the reason room. Name the effect on the people around them where the manager stated one. Where the manager's notes record what the person said or intended, acknowledge it. Where they do not, do not guess.
 
-  DIRECT. 130 to 200 words. Compress the strength and the evidence into one short paragraph. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to".`
+  DIRECT. 70 to 130 words. Fact first. Keep sentences under twenty words. Cut every qualifier: no "I think", "perhaps", "it might be worth", "I would encourage you to", "feel free to".`
 
-  const structureBlock = `STRUCTURE. Three sections, with these exact headings, each on its own line, in this order:
+  const structureBlock = `STRUCTURE. The feedback is a short letter in three beats. The beats are for you. They are never
+written down: no headings, no labels, no numbering. The reader sees paragraphs, a list if there
+is one, and a sign-off.
 
-Continue
-Add or change for impact
-Actions
+BEAT ONE, THE CONTEXT. What happened, in the manager's facts. Where the notes or the person's
+record hold a real strength, it sits here as context, in one sentence. Where they hold none, the
+first beat is the facts alone. Never write a strength to fill the space. This is the absolute
+rule above, applied to praise. "I know you care about doing good work", "I know your drive is
+real" and anything like them are facts about a real person that nobody has established.
 
-Under Continue: what the person should keep doing, specifically. This section only exists if
-there is something true to put in it. If the manager's notes and the person's record give you
-nothing genuine, leave the heading out entirely and open at "Add or change for impact". Never
-write a strength to fill the space. This is the same rule as the absolute rule above, applied
-to praise.
-
-The strength under Continue must be a different thing from the behaviour under "Add or change for
-impact". Praising someone's conviction and then naming conviction as what went wrong is the praise
-sandwich with the seam hidden, and the person will feel the seam. If the only strength the material
-offers is the one that caused the damage, leave Continue out.
-
-"Add or change for impact" and "Actions" always appear, on every document, whatever the severity.
-"Continue" is the only heading that may be left out.
-
-When you leave Continue out, the praise goes with it. Do not move a strength you could not justify
-into the next section, and do not open "Add or change for impact" with it. A document with no
-Continue heading opens on the change.
-
-Under Add or change for impact: the change, the evidence for it, and why it matters, using the
+BEAT TWO, THE GAP TO BE CLOSED. The change, the evidence for it, and why it matters, using the
 manager's own facts and figures. Say plainly where something is not acceptable. Where the manager
 has stated a consequence, a timescale or a formal process, it belongs here, in their words, with
 nothing softened, nothing added, and no reassurance wrapped around it.
@@ -232,21 +211,22 @@ call, and that is mine to carry." Then say what is needed from the person. A doc
 whole weight on the person for a decision the manager made reads as unfair, and from that line on
 nothing else in it lands.
 
-Under Actions: one short line of instruction, then two to four bullets, each on its own line
-starting with an asterisk and a space. One practical thing per bullet, something the person can
-start this week. Keep each under fifteen words. Every bullet is a different action: if two say the
-same thing in different words, keep one. Where the notes describe a situation that is still live,
-a person, a client or a piece of work still exposed today, the first bullet is what to do about
-that now, with a time to report back. The process actions for next time come after it.
+Where the notes describe something still exposed today, a person, a client or a piece of work,
+say what happens about that now, with a time.
 
-Then close, after the bullets, with one or two sentences: an offer to talk it through, or a
-request to book time and agree a plan together. Saying you believe the person can do this is
-right and belongs here: "I believe you can make positive changes in this area" claims nothing
-about them that has to be true. "I know you have the drive to turn this round" does, and unless
-the manager wrote that the person has drive, it is an invented fact hiding in an encouragement. Explaining that you do not mean to alarm them is not: that is throat
-clearing about the document rather than confidence in the person. Do not tell the person how they
-feel or how this will sit with them. "I know this will weigh on you" is a fact about them that
-nobody established. Say you want to talk it through, and when.
+BEAT THREE, THE CALL TO ACTION. It opens with an offer of a conversation or coaching, and it asks
+the person to think about what they can do to put things right for themselves. The sentence that
+does this is: "Come to that meeting with your view of what will put this right." Use it, or
+something as short. Suggestions to help are optional: where the manager has some, two to four
+bullets, each on its own line starting with an asterisk and a space, one practical thing each,
+under fifteen words, each a different action. Where there is something still exposed today, the
+first suggestion is about that. Then, if it is true, one sentence of confidence in the person: "I
+believe you can make positive changes in this area" claims nothing about them that has to be true.
+"I know you have the drive to turn this round" does, and unless the manager wrote that the person
+has drive, it is an invented fact hiding in an encouragement. Do not tell the person how they feel
+or how this will sit with them. "I know this will weigh on you" is a fact about them that nobody
+established. Do not explain that you do not mean to alarm them: that is throat clearing about the
+document.
 
 Say what is true, in one statement. Do not define it against what it is not. "That is not a small
 pattern, it is a regular one", "a requirement, not a target", "every day, not most days" are the
@@ -254,52 +234,49 @@ same construction three times over, and it is the clearest sign that a machine w
 document. One statement. No mirror. "This is not about whether your instinct was reasonable. It is
 that..." is the same construction with a full stop in the middle. Start at "It is that" and say it.
 
-Here is the format, written by the person whose product this is. Match the register, the bluntness
-and the shape. Take none of the facts.
+Here is the format, written by the person whose product this is. The beat labels in square brackets
+are annotations for you. Never write them. Match the register, the bluntness and the shape. Take
+none of the facts.
 
 --- EXAMPLE, EMPATHETIC ---
-Continue
+Sam,
 
+[beat one: the context]
 I appreciate your dedication to your work and the effort you put in. You are a positive, energetic
 team member.
 
-Add or change for impact
-
+[beat two: the gap to be closed]
 You have been late 5 times in the last three months, which is unacceptable because you have missed
 meetings, and clients and team members have noticed.
 
-Actions
+[beat three: the call to action]
+I am always available if you would like to talk this through, because I want you to succeed in your
+role here and your career. Please put this right immediately. Come to that meeting with your view
+of what will put this right. I believe you can make positive changes in this area and will support
+you where I can.
 
-Please put this right immediately. And here are some suggestions to help.
-
-* Set alarms or reminders to help you manage your time effectively.
-* Plan your commute or tasks ahead to avoid any delays.
-* Communicate proactively if you will be late due to unforeseen circumstances.
-* Consider adjusting your morning routine to allow for unexpected delays.
-
-I am always available if you would like to talk this through because I want you to succeed in your
-role here and your career. And remember, consistent punctuality shows respect for your colleagues'
-and clients' time and adds to a more efficient work environment. I believe you can make positive
-changes in this area.
+Jim
 
 --- EXAMPLE, DIRECT ---
-Continue
+Sam,
 
-I appreciate your dedication to your work and the effort you put into everything you do.
-Punctuality is a crucial part of a person's performance at work. Being late can disrupt other
-people and affect team morale and productivity. You have been late 5 times this month.
+[beat one: the context]
+You have been late 5 times this month. I appreciate your dedication to your work and the effort you
+put into everything you do. Punctuality is a crucial part of a person's performance at work. It
+affects how they are seen, and being late can disrupt customers, colleagues and team morale.
 
-Add or change for impact
-
+[beat two: the gap to be closed]
 Please make sure you arrive on time, with no exceptions, starting today.
 
-Actions
+[beat three: the call to action]
+Book some time with me to discuss this feedback, and we can agree an action plan together. Come to
+that meeting with your view of what will put this right. Some suggestions to help:
 
 * Aim to arrive at least 5 minutes early for meetings.
 * Set reminders to leave home earlier in the morning to allow for unexpected delays.
-* Communicate in advance if you are delayed, and make up for lost time by working extra where possible.
+* Communicate in advance if you are delayed, and make up for lost time where possible.
 
-Book some time with me to discuss this feedback, and we can agree an action plan together.
+Jim
 --- END OF EXAMPLES ---`
 
   const systemPrompt = `You are an expert leadership coach helping managers deliver clear, constructive, and motivating feedback.
@@ -322,32 +299,32 @@ You will generate TWO separate outputs. Separate them with exactly: ===GUIDE===
 
 OUTPUT 1 — THE FEEDBACK
 Generate feedback that:
-- Is clear, direct, and human — sounds like a thoughtful manager, not a corporate document
-- Is specific to the situation described — no generic praise or generic development points
+- Is clear, direct, and human. It sounds like a thoughtful manager.
+- Is specific to the situation described. No generic praise and no generic development points.
 ${registerBlock}
 
-Plain text. The only headings are the three named below, written as plain words on their own line, and the only bullets are the action bullets, written with an asterisk and a space. No markdown, no bold, no ## headings, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", "genuinely", or the phrase "moving forward".
+Plain text. No headings of any kind. The only bullets are the suggestion bullets, written with an asterisk and a space. No markdown, no bold, no ## headings, no backticks, no hashtags. No exclamation marks. UK English. Do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", "genuinely", or the phrase "moving forward".
 
 ${structureBlock}
 
-The feedback ends at its closing question. Nothing follows it: no summary, no next steps, and
-above all no advice about how often to review progress. That advice belongs after the marker
-below and the manager sees it in a separate panel. A warning that ends by recommending fortnightly
-one-to-ones has run two documents together.
+The feedback ends at the sign-off. Nothing follows it: no summary, no next steps, and above all no
+advice about how often to review progress. That advice belongs after the marker below and the
+manager sees it in a separate panel. A document that ends by recommending fortnightly one-to-ones
+has run two documents together.
 
 After the feedback, on a new line, write exactly: ===CADENCE===
-Then write a cadence recommendation of two or three sentences: how often (weekly, fortnightly, monthly), in what format (informal conversation, structured one-to-one, written note), and why — based on the issue and the person's development stage.
-Then list three cadence tags in square brackets on the next line — e.g. [Weekly] [Informal one-to-one] [Skills development]
+Then write a cadence recommendation of two or three sentences: how often (weekly, fortnightly, monthly), in what format (informal conversation, structured one-to-one, written note), and why, based on the issue and the person's development stage.
+Then list three cadence tags in square brackets on the next line, for example [Weekly] [Informal one-to-one] [Skills development]
 
 Then write exactly: ===GUIDE===
 
 OUTPUT 2 — THE CONVERSATION GUIDE
-This is practical advice for the manager on how to have the conversation. It is NOT the feedback itself.
+This is practical advice to the manager on how to have the conversation.
 
 The person's skill level is: ${skillLabel}
 The person's confidence level is: ${confidenceLabel}
 
-Structure the guide using exactly these section markers — write each heading on its own line, followed immediately by the advice:
+Structure the guide using exactly these section markers. Write each heading on its own line, followed immediately by the advice:
 
 ===SECTION===
 Before the conversation
@@ -361,13 +338,14 @@ What to listen for
 Suggested opening
 
 CONTENT RULES for the guide:
-- Always include this in "Before the conversation": Give the person advance notice of what you want to discuss. Do not ambush them with developmental feedback. It puts them on the defensive and closes down the conversation before it starts. A simple message the day before is enough: tell them you want to talk about their development and ask them to come ready to share their own view.
+- Always include this in "Before the conversation": Give the person advance notice of what you want to discuss. Do not ambush them with challenging or developmental feedback. It puts them on the defensive and closes down the conversation before it starts. A simple message the day before is enough: tell them you want to talk about their development and ask them to come ready to share their own view.
 - Always include this in "Before the conversation" or "What to listen for": Ask for their view before you give yours. Good people are almost always harder on themselves than you would be. If you lead with your assessment, you lose the chance to hear theirs, and you lose the opportunity to let them arrive at the same conclusion themselves, which is far more powerful.
 - Calibrate the rest of the advice based on skill and confidence level:
   - Low skill + low confidence: needs more structure, more encouragement, specific guidance on what good looks like, frequent check-ins
-  - Low skill + high confidence: needs honest, direct feedback to recalibrate — be kind but clear, don't let confidence mask the skill gap
-  - High skill + low confidence: needs reassurance, recognition of what they're already doing well, stretch challenges to rebuild belief
-  - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals — treat them as a partner in the conversation
+  - Low skill + high confidence: needs honest, direct feedback to recalibrate. Be kind and clear. Confidence can mask the skill gap.
+  - High skill + low confidence: needs reassurance, recognition of what they are already doing well, stretch challenges to rebuild belief
+  - High skill + high confidence: can handle more autonomy, peer challenge, stretch goals. Treat them as a partner in the conversation.
+- Where the manager's notes record what the person said or intended, use it. Where they do not, do not guess at the person's motives or feelings.
 - Write in plain prose, no bullet points, no jargon, no markdown, no asterisks, no bold, no exclamation marks
 - UK English throughout, and do not use em dashes (—): use a comma, a colon, or a full stop instead. Do not use the words "leverage", "empower", "unlock", "journey", "delve", "robust", "seamless", "inspire", "genuinely", or the phrase "moving forward"
 - Say what is true in one statement. Do not define it against what it is not. "Direct, not padded" and "a proper conversation, not a corridor chat" are both banned. Write "direct." Write "a proper sit-down conversation."
@@ -383,26 +361,22 @@ CONTENT RULES for the guide:
 WHAT THE MANAGER ALREADY KNOWS ABOUT THIS PERSON:
 ${personContext.trim()}
 
-This is background about the person, not an agenda for this conversation. Use it
-to make the writing specific and to know how this person takes things. Where the
-manager's notes for this conversation name a behaviour, that is the development
-point and this record does not add a second one.
+This is background about the person. Use it to make the writing specific and to
+know how this person takes things. The manager's notes for this conversation name
+the development point, and this record does not add a second one.
 Do not repeat these notes back verbatim. Do not mention that you were given them.
 `
     : ''
 
-  // When the reframe found no strength and the record is empty, there is
-  // nothing a Continue section could honestly contain. A conditional rule
-  // buried in the system prompt has lost this argument four times running, so
-  // say it flatly, in the user turn, where the model is actually looking.
-  const noContinue = !(reframed && reframed.strength) && !(personContext && personContext.trim())
-  const continueDirective = noContinue
+  // When the reframe found no strength and the record is empty, the first
+  // beat is the facts alone. Said flatly, in the user turn, where the model
+  // is actually looking, because a conditional rule buried in the system
+  // prompt lost this argument four times running.
+  const noStrength = !(reframed && reframed.strength) && !(personContext && personContext.trim())
+  const noStrengthDirective = noStrength
     ? `
-THIS DOCUMENT HAS NO CONTINUE SECTION. The manager has written nothing good about this person and
-the record holds nothing either. Do not write the Continue heading. Do not write a sentence of
-praise anywhere else instead. "I know you care about doing good work", "I know your drive is real"
-and anything like them are facts about a real person that nobody has established. Begin at
-"Add or change for impact".
+THERE IS NO STRENGTH TO WRITE. The manager has written nothing good about this person and the
+record holds nothing either. Open on the facts. Do not write a sentence of praise anywhere.
 `
     : ''
 
@@ -417,28 +391,30 @@ and anything like them are facts about a real person that nobody has established
     : ''
   const namesDirective = (recipientFirst || managerFirst)
     ? `
-${recipientFirst ? `Open the document with "${recipientFirst}," on its own line before the first heading, and use the name "${recipientFirst}" where a name reads naturally, no more than twice in the body. ` : ''}${managerFirst ? `After the closing sentences of the feedback, and before the ===CADENCE=== line, sign off with "${managerFirst}" on its own line. ` : ''}Do not invent a surname, a title or a role for either person.
+${recipientFirst ? `The first line of the document is "${recipientFirst}," on its own. Use the name "${recipientFirst}" where a name reads naturally, no more than twice in the body. ` : ''}${managerFirst ? `The last line of the feedback, before the ===CADENCE=== line, is "${managerFirst}" on its own. ` : ''}Do not invent a surname, a title or a role for either person.
 `
     : ''
 
   const userPrompt = `Feedback register: ${tone || 'Empathetic'}
 ${namesBlock}Person's skill level: ${skillLabel}
 Person's confidence level: ${confidenceLabel}
-${contextBlock}${reframeBlock}${continueDirective}
+${contextBlock}${reframeBlock}${noStrengthDirective}
 Manager's notes:
 ${inputText.trim()}
 ${namesDirective}
 Write the feedback in the ${tone || 'Empathetic'} register, to the word count that register specifies.
+No headings and no beat labels: paragraphs, a list if there is one, a sign-off.
 Every fact in it must be in the manager's notes above. If you are about to explain why something
 happened and the notes do not say why, leave the why out.`
 
   try {
+    // No temperature: current models reject it, and the adapter has been
+    // quietly dropping it. Effort and headroom are the settings that matter.
     const generated = await complete({
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
       maxTokens: 16000,
       effort: 'low',
-      temperature: 0.7
     })
 
     if (!generated.ok) {
@@ -479,12 +455,18 @@ happened and the notes do not say why, leave the why out.`
     result = stripScaffold(result)
     guide = stripScaffold(guide)
 
-    for (const heading of ['Add or change for impact', 'Actions']) {
-      if (!result.includes(heading)) console.warn('[feedback] missing heading:', heading)
-    }
-    if (noContinue && /^Continue\s*$/im.test(result)) {
-      console.warn('[feedback] Continue section written when there was nothing to put in it')
-    }
+    // The old section headings and the beat labels are scaffolding. If any
+    // of them reach the page, the reader sees the machinery. Removed here,
+    // and logged, because the prompt has asked for their absence and the
+    // prompt is a request.
+    const stripLabels = (t) =>
+      String(t || '').replace(/^[ \t]*(?:\[?beat\s*(?:one|two|three|\d)\b[^\n]*\]?|Continue|Add or change for impact|Actions)[ \t]*\n+/gim, '')
+    const beforeLabels = result.length
+    result = stripLabels(result)
+    if (result.length !== beforeLabels) console.warn('[feedback] scaffold label reached the document and was removed')
+
+    const paragraphs = result.split(/\n\s*\n/).filter((p) => p.trim()).length
+    if (paragraphs < 3) console.warn('[feedback] document has', paragraphs, 'paragraphs; expected at least three')
 
     if (!full.includes('===CADENCE===')) {
       // Without the marker the cadence advice stays in the body of the
@@ -516,10 +498,10 @@ happened and the notes do not say why, leave the why out.`
         const digits = t.match(/\b\d+\b/g) || []
         const counted = t.match(new RegExp(`\\b(?:${NUMBER_WORD})\\s+(?:${UNIT})\\b`, 'gi')) || []
         const process = t.match(/\b(?:disciplinary|dismissal|gross misconduct|written warning|final warning|probation|capability procedure)\b/gi) || []
-        // The headings are part of the record too. A scrub that eats them
-        // returns a document with no shape, which is what happened at 09:24.
-        const headings = t.match(/^(?:Add or change for impact|Actions)$/gim) || []
-        return [...new Set([...digits, ...counted, ...process, ...headings].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
+        // The guide's section headings are part of its record: a scrub that
+        // eats one returns a guide the renderer cannot lay out.
+        const sections = t.match(/^(?:Before the conversation|Tone and approach|How much direction to give|What to listen for|Suggested opening)$/gim) || []
+        return [...new Set([...digits, ...counted, ...process, ...sections].map((x) => x.toLowerCase().replace(/\s+/g, ' ')))]
       }
 
       // What must not be there. Regex cannot judge invented praise, but it can
@@ -544,45 +526,36 @@ happened and the notes do not say why, leave the why out.`
       ]
       const offencesIn = (t) => BANNED.filter((b) => b.re.test(t)).map((b) => b.name)
 
-      // Formal warnings are always scrubbed. Everything else is checked
-      // mechanically first and scrubbed only when something is found, so an
-      // ordinary run pays for the check and nothing more. Until 19 September
-      // the scrub ran on formal documents only, and a developmental one went
-      // out with four antitheses in it.
-      const preOffences = offencesIn(result)
-      const shouldScrub = isFormal || preOffences.length > 0
-      if (!isFormal) console.log('[feedback] scrub check:', preOffences.length ? preOffences.join(', ') : 'clean')
-
       const RULES = `Delete every sentence, or part of a sentence, that does any of the following, then repair the
 joins so the prose still reads properly:
-- defends the document rather than addressing the person, in any tense: "I am not saying this to
+- defends the document instead of addressing the person, in any tense: "I am not saying this to
   alarm you", "I am not raising that to alarm you", "I do not say that to frighten you", "I do not
   want that for you", "this is not who you are". A manager who has to explain that a warning is not
-  meant to alarm has written a warning they are not sure they meant. Note the difference between
-  that and "I believe you can make positive changes in this area", which is confidence in the
-  person and stays.
+  meant to alarm has written a warning they are not sure they meant. "I believe you can make
+  positive changes in this area" is different: that is confidence in the person, and it stays.
 - hinges with but, however, that said, although or yet, whether it starts a sentence or sits
   inside one after a comma
 - defines something by what it is not: "that is not a small pattern, it is a regular one", "a
   requirement, not a target", "every day, not most days". Cut the negative half and keep the
   positive statement on its own. "That is a pattern." "That is a requirement." "Every day."
   This construction is the clearest sign a machine wrote the document and it must not survive.
-- guesses at why the person is behaving this way. "whether that is a schedule issue, a childcare
-  issue, or something else entirely" goes. Speculating about someone's home life in a
-  feedback document is both invented and the kind of guess that causes a second problem.
-- states a fact the manager's notes do not contain: a date, a number, a name, an incident, or
-  anything the manager is said to have done about it. "I have had to step in personally to cover
-  the gaps" goes unless the notes say so. This one matters most. Praise that is not true is
-  embarrassing; an invented account of events is the sentence that loses a tribunal.
+- guesses at why the person is behaving this way, or how they feel. "whether that is a schedule
+  issue, a childcare issue, or something else entirely" goes. "feeling he was trying to help"
+  goes. Speculating about someone's motives or home life is invented, and it is the kind of guess
+  that causes a second problem.
+- states a fact the manager's notes do not contain: a date, a number, a name, an incident, a reason
+  why something happened, or anything the manager is said to have done about it. "I have had to
+  step in personally to cover the gaps" goes unless the notes say so. This one matters most. Praise
+  that is not true is embarrassing; an invented account of events is the sentence that loses a
+  tribunal.
 
 Work at clause level where a sentence is only half wrong: "I am not raising that to alarm you, I
 am raising it because I want you to know what is at stake" becomes "I am raising it because I
 want you to know what is at stake."
 
-The headings "Continue", "Add or change for impact" and "Actions" are structure, not prose. Leave
-every one that is there exactly where it is. Never delete a heading, never add one, never merge two
-sections into one. If deleting a sentence empties the Continue section completely, delete the
-Continue heading with it and leave the other two standing.
+Structure stays. A salutation line, a sign-off line, a line starting with an asterisk, and any
+heading line on its own are all left exactly where they are. Never delete one, never add one,
+never merge two paragraphs into one.
 
 Never leave a stump. If removing a sentence orphans the one after it, so that it opens with "It is",
 "This is", "That is" or "They are" and now refers to nothing, delete that sentence too. "I know your
@@ -596,8 +569,8 @@ consequence must survive exactly as written.
 Return only the corrected document, nothing else.`
 
       const runScrub = async (draft, quoted) => {
-        const prompt = `Below is a feedback document drafted for a manager, followed by the manager's
-own notes. The document must not contain anything the notes do not support.
+        const prompt = `Below is a document drafted for a manager, followed by the manager's own
+notes. The document must not contain anything the notes do not support.
 
 ${RULES}${quoted ? `
 
@@ -609,7 +582,7 @@ ${draft}
 --- THE MANAGER'S NOTES ---
 ${inputText.trim()}`
 
-        // Not the quick model: it is not good enough at this. But moving to the
+        // Not the quick model: it is not good enough at this. Moving to the
         // writing model without an effort setting cost us a live run, because
         // max_tokens counts thinking tokens and Sonnet spent all 8000 of them
         // thinking and returned nothing. Deletion needs no deliberation.
@@ -621,58 +594,66 @@ ${inputText.trim()}`
         return r.ok ? stripScaffold(r.text) : ''
       }
 
-      if (shouldScrub) {
-      const original = result
-      const needed = loadBearing(original)
-      // Length is not the guard. A warning under 400 characters has lost its
-      // substance whatever the ratio says, and that is all the floor is for.
-      const passes = (candidate) => {
-        const hay = candidate.toLowerCase().replace(/\s+/g, ' ')
-        const missing = needed.filter((tok) => !hay.includes(tok))
-        return { ok: candidate.length >= 400 && missing.length === 0, missing }
-      }
+      // One scrub, applied to either output. The feedback is always scrubbed
+      // on a formal warning. Otherwise, and for the guide every time, the
+      // mechanical check runs first and the scrub only when it finds
+      // something, so an ordinary run pays for the check and nothing more.
+      // Until 19 September the scrub ran on formal feedback only, and a
+      // developmental document went out with four antitheses in it.
+      const scrubIfNeeded = async (text, label, always) => {
+        if (!text) return text
+        const pre = offencesIn(text)
+        if (!always && !pre.length) {
+          console.log(`[feedback] ${label} scrub check: clean`)
+          return text
+        }
+        console.log(`[feedback] ${label} scrub check:`, pre.length ? pre.join(', ') : 'clean (formal, scrubbing anyway)')
 
-      let cleaned = await runScrub(original, '')
-      let verdict = cleaned ? passes(cleaned) : { ok: false, missing: [] }
+        const needed = loadBearing(text)
+        // Length is a floor, never the guard. A document under 300 characters
+        // has lost its substance whatever the ratio says.
+        const passes = (candidate) => {
+          const hay = candidate.toLowerCase().replace(/\s+/g, ' ')
+          const missing = needed.filter((tok) => !hay.includes(tok))
+          return { ok: candidate.length >= 300 && missing.length === 0, missing }
+        }
 
-      if (verdict.ok) {
+        let cleaned = await runScrub(text, '')
+        let verdict = cleaned ? passes(cleaned) : { ok: false, missing: [] }
+
+        if (!verdict.ok) {
+          if (cleaned) console.warn(`[feedback] ${label} scrub rejected. length`, cleaned.length, 'missing:', verdict.missing.join(' | ') || 'none')
+          else console.warn(`[feedback] ${label} scrub returned nothing, keeping the original`)
+          return text
+        }
+
         const left = offencesIn(cleaned)
         if (left.length) {
-          console.warn('[feedback] scrub pass 1 left:', left.join(', '), '- running pass 2')
+          console.warn(`[feedback] ${label} scrub pass 1 left:`, left.join(', '), '- running pass 2')
           const second = await runScrub(cleaned, left.join(', '))
           const secondVerdict = second ? passes(second) : { ok: false, missing: [] }
-          if (secondVerdict.ok) {
-            cleaned = second
-            verdict = secondVerdict
-          } else {
-            console.warn('[feedback] scrub pass 2 rejected, keeping pass 1. missing:', secondVerdict.missing.join(' | ') || 'none')
-          }
+          if (secondVerdict.ok) cleaned = second
+          else console.warn(`[feedback] ${label} scrub pass 2 rejected, keeping pass 1. missing:`, secondVerdict.missing.join(' | ') || 'none')
         }
-        console.log('[feedback] scrub applied,', original.length - cleaned.length, 'chars removed. remaining:', offencesIn(cleaned).join(', ') || 'none')
-        result = cleaned
-      } else if (cleaned) {
-        console.warn('[feedback] scrub rejected. length', cleaned.length, 'missing:', verdict.missing.join(' | ') || 'none')
-      } else {
-        console.warn('[feedback] scrub returned nothing, keeping the original')
+        console.log(`[feedback] ${label} scrub applied,`, text.length - cleaned.length, 'chars removed. remaining:', offencesIn(cleaned).join(', ') || 'none')
+        return cleaned
       }
-      }
+
+      result = await scrubIfNeeded(result, 'feedback', isFormal)
+      guide = await scrubIfNeeded(guide, 'guide', false)
     }
 
     // Enforced, not instructed. On 19 September the scrub ran twice on a
-    // developmental document and still left ", not just in passing", and the
-    // writer produced a "Continue" heading with nothing under it, which the
-    // prompt forbids in three places. Both are mechanical, so both are cut here.
-    //
-    // The tail cut removes only the comma-led negative half of a sentence,
-    // ", not just in passing." / ", not a lecture.", which is Jim's own rule:
-    // keep the positive statement, drop the mirror.
-    const dropEmptyContinue = (t) =>
-      String(t || '').replace(/^Continue[ \t]*\n+(?=(?:Add or change for impact|Actions)[ \t]*$)/im, '')
+    // developmental document and still left ", not just in passing". The tail
+    // cut removes only the comma-led negative half of a sentence, ", not just
+    // in passing." / ", not a lecture.", which is Jim's own rule: keep the
+    // positive statement, drop the mirror. It is blind: ", not with HR." goes
+    // too. Known, and accepted.
     const cutNotTail = (t) =>
       String(t || '').replace(/,\s*not\s+(?:just\s+|only\s+|merely\s+)?[a-z][^.,;:!?\n]{1,45}(?=[.?!])/gi, '')
 
     const beforeFix = result.length + guide.length
-    result = cutNotTail(dropEmptyContinue(result))
+    result = cutNotTail(result)
     guide = cutNotTail(guide)
     const removed = beforeFix - (result.length + guide.length)
     if (removed > 0) console.log('[feedback] mechanical fix removed', removed, 'chars')
