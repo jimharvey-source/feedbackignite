@@ -270,7 +270,7 @@ function renderDelegate(doc, data) {
       H.ensureSpace(36);
       doc.font(F.bold).fontSize(9).fillColor(MUTED).text(k, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
       doc.moveDown(0.15);
-      doc.font(F.sans).fontSize(10).fillColor(INK).text(String(v).trim(), CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2.5 });
+      doc.font(F.sans).fontSize(10).fillColor(INK).text(asTyped(v), CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2.5 });
       doc.moveDown(0.7);
       i += 1;
       continue;
@@ -336,6 +336,12 @@ function drawCover(doc, H, kind, title, preparedLine, note) {
 
 // "What you told us": label above value, in the order given. Long answers take the
 // full width; a run of short ones sits two to a row. The same layout as Delegate's.
+// What the manager typed, as typed, except a line break in the middle of a sentence
+// ("the data was" / "clear.") is joined. Lists and new sentences keep their breaks.
+function asTyped(v) {
+  return String(v).trim().replace(/([^.!?:;\n])[ \t]*\n(?=[a-z])/g, "$1 ");
+}
+
 function drawInputs(doc, H, inputs) {
   H.h2("What you told us");
   const colW = (CONTENT_WIDTH - 24) / 2;
@@ -347,7 +353,7 @@ function drawInputs(doc, H, inputs) {
       H.ensureSpace(36);
       doc.font(F.bold).fontSize(9).fillColor(MUTED).text(k, CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH });
       doc.moveDown(0.15);
-      doc.font(F.sans).fontSize(10).fillColor(INK).text(String(v).trim(), CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2.5 });
+      doc.font(F.sans).fontSize(10).fillColor(INK).text(asTyped(v), CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH, lineGap: 2.5 });
       doc.moveDown(0.7);
       i += 1;
       continue;
@@ -471,7 +477,7 @@ function drawCadencePills(doc, cad) {
   const chips = [];
   let cx = 0, row = 0;
   cad.pills.forEach(p => {
-    const cw = Math.min(w, doc.widthOfString(p) + 18);
+    const cw = Math.min(w, doc.widthOfString(p) + 22);
     if (cx > 0 && cx + cw > w) { cx = 0; row += 1; }
     chips.push({ p, x: cx, row, w: cw });
     cx += cw + chipGap;
@@ -504,7 +510,7 @@ function drawCadencePills(doc, cad) {
     doc.roundedRect(x, y, c.w, chipH, 9).fillColor("#FFFFFF").fill();
     doc.roundedRect(x, y, c.w, chipH, 9).lineWidth(0.6).strokeColor(RULE).stroke();
     doc.font(F.bold).fontSize(8.5).fillColor(INK)
-      .text(c.p, x + 9, y + 4.5, { width: c.w - 18, lineBreak: false, ellipsis: true });
+      .text(c.p, x + 11, y + 4.5, { lineBreak: false });
   });
   doc.y = y0 + h + 14;
   doc.x = CONTENT_LEFT;
