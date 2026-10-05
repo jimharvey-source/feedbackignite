@@ -263,3 +263,56 @@ export async function saveAction(client, { personId, sessionId, description, due
     owner: owner || 'person',
   }).select().maybeSingle();
 }
+
+// ---------------------------------------------------------------------
+// The person, when the manager started in a tool rather than from the app
+// ---------------------------------------------------------------------
+
+/** Split "Sarah Pearce" into first and last name. Empty when there is no name. */
+export function splitName(fullName) {
+  const words = String(fullName || '').trim().replace(/\s+/g, ' ').slice(0, 80).split(' ').filter(Boolean);
+  if (!words.length) return null;
+  return { first_name: words[0], last_name: words.slice(1).join(' ') || null };
+}
+
+/**
+ * Find someone already on the manager's team with this name.
+ * Returns { person } when exactly one active person matches, { person: null } when none
+ * or several do (several means we cannot tell which, so we never guess), and
+ * { error } when the read itself failed.
+ */
+export async function findPersonByName(client, fullName) {
+  const name = splitName(fullName);
+  if (!name) return { person: null };
+  const { data, error } = await client
+    .schema('app')
+    .from('people')
+    .select('id, first_name, last_name, role_title, motivation, strengths, development_focus, confidence_note, status')
+    .eq('status', 'active')
+    .ilike('first_name', name.first_name.replace(/[%_\\]/g, (c) => '\\' + c));
+  if (error) return { person: null, error };
+  const want = (name.last_name || '').toLowerCase();
+  const hits = (data || []).filter((p) => (p.last_name || '').toLowerCase() === want);
+  return { person: hits.length === 1 ? hits[0] : null, several: hits.length > 1 };
+}
+
+/** Add someone to the manager's team with just their name. The rest is filled in on their record. */
+export async function createPerson(client, fullName) {
+  const name = splitName(fullName);
+  if (!name) return { person: null, error: new Error('There is no name to add.') };
+  const { data: { user } } = await client.auth.getUser();
+  if (!user) return { person: null, error: new Error('Not signed in.') };
+  const { data, error } = await client
+    .schema('app')
+    .from('people')
+    .insert({ account_id: user.id, ...name })
+    .select('id, first_name, last_name, role_title, motivation, strengths, development_focus, confidence_note, status')
+    .maybeSingle();
+  if (error || !data) return { person: null, error: error || new Error('The new person was not returned.') };
+  return { person: data };
+}
+
+/** The person's record in the app, for the "now on your team" line. */
+export function personRecordUrl(personId) {
+  return `https://app.management-ignition.com/people/${personId}`;
+}

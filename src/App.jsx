@@ -5,6 +5,10 @@ import {
   loadPerson,
   saveToolSession,
   parseSharpened,
+  findPersonByName,
+  createPerson,
+  personRecordUrl,
+  splitName,
 } from './mi-session.js'
 
 const supabase = createSuiteClient({
@@ -102,6 +106,9 @@ export default function App() {
   const [user, setUser] = useState(null)
   const [person, setPerson] = useState(null)
   const [saveState, setSaveState] = useState('idle')
+  // Started in the tool rather than from the app: is this person already on the team?
+  const [teamMatch, setTeamMatch] = useState(null)
+  const [addedPerson, setAddedPerson] = useState(null)
   const [savedId, setSavedId] = useState(null)
 
   // The sharpening check. Vague notes produce vague feedback however good the
@@ -164,6 +171,7 @@ export default function App() {
     setCadence('')
     setActiveTab('feedback')
     setSaveState('idle')
+    setAddedPerson(null)
     setSavedId(null)
     setNotesCheck(null)
     setLoading(true)
@@ -299,13 +307,38 @@ export default function App() {
     }
   }
 
+  useEffect(() => {
+    if (!output || !user || person) { setTeamMatch(null); return }
+    let cancelled = false
+    findPersonByName(supabase, names.recipientName).then(({ person: match, error: findError }) => {
+      if (findError) console.error('findPersonByName failed:', findError.message)
+      if (!cancelled) setTeamMatch(match || null)
+    })
+    return () => { cancelled = true }
+  }, [output, user, person, names.recipientName])
+
   const handleSaveToPerson = async () => {
-    if (!output || !person) return
+    if (!output) return
     setSaveState('saving')
+    // Three cases: sent here from the app with a person; started here with a name already
+    // on the team; started here with someone new, who is added first.
+    let target = person || teamMatch
+    if (!target) {
+      const { person: created, error: addError } = await createPerson(supabase, names.recipientName)
+      if (addError || !created) {
+        console.error('createPerson failed:', addError?.message)
+        setSaveState('idle')
+        setError('That person could not be added to your team, so nothing was saved.')
+        return
+      }
+      target = created
+      setAddedPerson(created)
+    }
+    setPerson(target)
     const { data, error: saveError } = await saveToolSession(supabase, {
       tool: 'feedback',
-      personId: person.id,
-      title: `Feedback for ${person.first_name}`,
+      personId: target.id,
+      title: `Feedback for ${target.first_name}`,
       inputs: { inputText, tone, skill, confidence, ...names },
       outputs: { output, guide, cadence },
     })
@@ -559,7 +592,7 @@ export default function App() {
                         <a className="copy-btn" href="https://app.management-ignition.com/" style={{ textDecoration: 'none' }}>
                           Back to dashboard
                         </a>
-                        {person && (
+                        {user && splitName(names.recipientName) && (
                           <button
                             className={`copy-btn${saveState === 'saved' ? ' copied' : ''}`}
                             onClick={handleSaveToPerson}
@@ -567,12 +600,21 @@ export default function App() {
                             type="button"
                           >
                             {saveState === 'saved'
-                              ? <><CheckIcon /> Saved to {person.first_name}</>
-                              : saveState === 'saving' ? 'Saving…' : `Save to ${person.first_name}'s record`}
+                              ? <><CheckIcon /> Saved to {(person || teamMatch).first_name}</>
+                              : saveState === 'saving' ? 'Saving…'
+                              : (person || teamMatch) ? `Save to ${(person || teamMatch).first_name}'s record`
+                              : `Add ${splitName(names.recipientName).first_name} to your team and save`}
                           </button>
                         )}
                       </div>
                     </div>
+                    {addedPerson && saveState === 'saved' && (
+                      <p className="field-hint" style={{ margin: '0 0 12px' }}>
+                        {addedPerson.first_name} is now on your team.{' '}
+                        <a href={personRecordUrl(addedPerson.id)}>Open {addedPerson.first_name}&rsquo;s record</a>{' '}
+                        to add their role and what they respond to. Every tool reads it.
+                      </p>
+                    )}
                     <textarea className="output-area" value={output} onChange={e => setOutput(e.target.value)} rows={14} />
 
                     {person && (
