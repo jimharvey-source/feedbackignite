@@ -372,11 +372,10 @@ export default function App() {
             <span className="brand-name">Feedback Ignite</span>
             <span className="pill">Beta</span>
           </a>
-          {user && (
-            <div className="header-actions">
-              <span className="header-user">{user.email}</span>
-            </div>
-          )}
+          <div className="header-actions">
+            <a href="https://app.management-ignition.com/" className="header-back">Back to dashboard</a>
+            {user && <span className="header-user">{user.email}</span>}
+          </div>
         </div>
       </header>
 
@@ -557,6 +556,9 @@ export default function App() {
                         <button className="copy-btn" onClick={() => handleDownloadPdf('manager')} disabled={!!downloadingPdf} type="button">
                           <DownloadIcon /> {downloadingPdf === 'manager' ? 'Preparing…' : "Manager's pack"}
                         </button>
+                        <a className="copy-btn" href="https://app.management-ignition.com/" style={{ textDecoration: 'none' }}>
+                          Back to dashboard
+                        </a>
                         {person && (
                           <button
                             className={`copy-btn${saveState === 'saved' ? ' copied' : ''}`}

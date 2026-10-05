@@ -115,6 +115,15 @@ body {
   flex-wrap: wrap;
 }
 
+.header-back {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink-2);
+  text-decoration: none;
+  padding: 8px 6px;
+}
+.header-back:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
+
 .header-user {
   font-size: 13px;
   color: var(--muted);
