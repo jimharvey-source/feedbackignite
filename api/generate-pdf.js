@@ -144,7 +144,9 @@ function makeHelpers(doc) {
       ensureSpace(24);
       // A numbered step with a title ("1. Define the task. Set out...") gets its title in bold.
       // Manager's notes only: the team member's letter is left as written.
-      const step = spoken ? null : rest.match(/^(\d{1,2}\.\s+[^.:!?\n]{2,80}[.:])\s+([\s\S]+)$/);
+      // Only where the caller asks (opts.steps): a numbered question list in the coaching guide has
+      // the same shape, and bolding the first sentence of some questions and not others reads as noise.
+      const step = (spoken || !opts.steps) ? null : rest.match(/^(\d{1,2}\.\s+[^.:!?\n]{2,80}[.:])\s+([\s\S]+)$/);
       if (step) {
         doc.font(F.bold).fontSize(size).fillColor(INK)
           .text(step[1] + " ", CONTENT_LEFT, doc.y, { width: CONTENT_WIDTH, align: "left", lineGap, continued: true });
@@ -304,7 +306,7 @@ function renderDelegate(doc, data) {
   H.ensureSpace(80);
   H.label("Manager only");
   H.h2("Advice for the delegator");
-  H.body(result.delegationAdvice);
+  H.body(result.delegationAdvice, { steps: true });
 
   // Output two: the briefing note, on its own page, set as the letter
   doc.addPage();
@@ -703,8 +705,10 @@ function renderCoach(doc, data) {
     H.body(result.approach);
   }
 
-  // The GROW conversation guide, own page, manager only
-  doc.addPage();
+  // The GROW conversation guide, manager only. It follows on when the page has room: the
+  // approach is one sentence, and a page break after it left most of a page empty.
+  doc.moveDown(0.8);
+  H.ensureSpace(220);
   drawOutputHead(doc, H, "Manager only: your conversation guide", "GROW conversation guide");
   H.body(result.guide);
 
@@ -762,7 +766,7 @@ function renderGoal(doc, data) {
   H.ensureSpace(80);
   H.label("Manager only");
   H.h2("Goal-setting advice");
-  H.body(result.advice);
+  H.body(result.advice, { steps: true });
 
   // Output two: the brief, own page, set as the letter
   doc.addPage();

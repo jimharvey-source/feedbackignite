@@ -273,7 +273,7 @@ export default function App() {
           text: output
         })
       } catch (err) {
-        // User cancelled — do nothing
+        // User cancelled: do nothing
       }
     } else {
       // Fallback: copy and show message
@@ -299,7 +299,7 @@ export default function App() {
           text: guide
         })
       } catch (err) {
-        // User cancelled — do nothing
+        // User cancelled: do nothing
       }
     } else {
       navigator.clipboard.writeText(guide)
@@ -702,7 +702,7 @@ function GuideDisplay({ content }) {
         sections.push({ heading, body: '' })
       }
     } else {
-      // A stray body block with no preceding heading — render as plain prose.
+      // A stray body block with no preceding heading: render as plain prose.
       sections.push({ heading: '', body: blocks[i] })
     }
   }

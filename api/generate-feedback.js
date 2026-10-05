@@ -618,7 +618,29 @@ ${inputText.trim()}`
           return { ok: candidate.length >= 300 && missing.length === 0, missing }
         }
 
-        let cleaned = await runScrub(text, '')
+        // A scrub can delete every sentence under a heading and leave the heading standing. The
+        // heading check above passes, and the manager gets "What to listen for" with nothing under
+        // it (Peace Ovuegbe, 5 October). Any section the scrub empties gets its original back:
+        // a guide with a hinge in it is better than a guide with a hole in it.
+        const SECTION = '===SECTION==='
+        const restoreEmptied = (candidate) => {
+          if (!candidate || !text.includes(SECTION) || !candidate.includes(SECTION)) return candidate
+          const before = text.split(SECTION)
+          const after = candidate.split(SECTION)
+          if (before.length !== after.length) return candidate
+          const restored = []
+          const merged = after.map((block, i) => {
+            const lines = block.trim().split('\n')
+            const hasBody = lines.slice(1).join('\n').trim().length > 0
+            const hadBody = before[i].trim().split('\n').slice(1).join('\n').trim().length > 0
+            if (lines[0] && !hasBody && hadBody) { restored.push(lines[0].trim()); return before[i] }
+            return block
+          })
+          if (restored.length) console.warn(`[feedback] ${label} scrub emptied a section, original kept for:`, restored.join(' | '))
+          return merged.join(SECTION)
+        }
+
+        let cleaned = restoreEmptied(await runScrub(text, ''))
         let verdict = cleaned ? passes(cleaned) : { ok: false, missing: [] }
 
         if (!verdict.ok) {
@@ -630,7 +652,7 @@ ${inputText.trim()}`
         const left = offencesIn(cleaned)
         if (left.length) {
           console.warn(`[feedback] ${label} scrub pass 1 left:`, left.join(', '), '- running pass 2')
-          const second = await runScrub(cleaned, left.join(', '))
+          const second = restoreEmptied(await runScrub(cleaned, left.join(', ')))
           const secondVerdict = second ? passes(second) : { ok: false, missing: [] }
           if (secondVerdict.ok) cleaned = second
           else console.warn(`[feedback] ${label} scrub pass 2 rejected, keeping pass 1. missing:`, secondVerdict.missing.join(' | ') || 'none')
