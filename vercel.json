@@ -2,6 +2,11 @@
   "regions": [
     "arn1"
   ],
+  "functions": {
+    "api/generate-pdf.js": {
+      "includeFiles": "api/_fonts/**"
+    }
+  },
   "rewrites": [
     {
       "source": "/api/(.*)",

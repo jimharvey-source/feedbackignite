@@ -15,13 +15,6 @@ const supabase = createSuiteClient({
 // Where to send a manager who wants to turn this into coaching.
 const COACH_URL = 'https://coach.management-ignition.com'
 
-const FlameIcon = () => (
-  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <path d="M12 2C12 2 7 7 7 13a5 5 0 0010 0C17 7 12 2 12 2z" fill="currentColor" opacity="0.9"/>
-    <path d="M12 8c0 0-3 3-3 5a3 3 0 006 0C15 11 12 8 12 8z" fill="white" opacity="0.45"/>
-  </svg>
-)
-
 const CopyIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
@@ -277,7 +270,7 @@ export default function App() {
     } else {
       // Fallback: copy and show message
       navigator.clipboard.writeText(output)
-      alert('Copied to clipboard — paste into WhatsApp, Slack, or wherever you need it.')
+      alert('Copied to clipboard. Paste into WhatsApp, Slack, or wherever you need it.')
     }
   }
 
@@ -302,7 +295,7 @@ export default function App() {
       }
     } else {
       navigator.clipboard.writeText(guide)
-      alert('Copied to clipboard — paste into your notes or wherever you need it.')
+      alert('Copied to clipboard. Paste into your notes or wherever you need it.')
     }
   }
 
@@ -371,15 +364,19 @@ export default function App() {
 
   return (
     <div className="app-shell">
+      <div className="tool-line" />
       <header className="page-header">
         <div className="header-inner">
           <a href="/" className="brand">
-            <div className="brand-icon"><FlameIcon /></div>
-            <div className="brand-text">
-              <span className="brand-name">Feedback <span>Ignite</span></span>
-              <span className="brand-suite">Part of the Management Ignition Suite</span>
-            </div>
+            <img src="/mi-mark.svg" alt="" width="26" height="26" className="brand-mark" />
+            <span className="brand-name">Feedback Ignite</span>
+            <span className="pill">Beta</span>
           </a>
+          {user && (
+            <div className="header-actions">
+              <span className="header-user">{user.email}</span>
+            </div>
+          )}
         </div>
       </header>
 
@@ -387,12 +384,12 @@ export default function App() {
         <div className="content-inner">
 
           <div className="hero">
-            <h1>Turn raw notes into<br /><em>feedback that sticks</em></h1>
-            <p>Clear, motivating development feedback — structured around 30 years of leadership research.</p>
+            <h1>Turn raw notes into<br />feedback that sticks.</h1>
+            <p>Clear, motivating development feedback, structured around 30 years of leadership research.</p>
           </div>
 
           {person && (
-            <div className="card" style={{ borderLeft: '3px solid #8B00CC' }}>
+            <div className="card">
               <div className="card-title" style={{ marginBottom: 6 }}>
                 Feedback for {[person.first_name, person.last_name].filter(Boolean).join(' ')}
               </div>
@@ -412,7 +409,7 @@ export default function App() {
             </div>
           )}
 
-          <div className="card">
+          <div className="card card-main">
             <div className="card-title">Who this is for</div>
             <div className="name-fields">
               <div className="name-field">
@@ -475,11 +472,11 @@ export default function App() {
             <div className="tone-group">
               <button className={`tone-btn${tone === 'Empathetic' ? ' selected' : ''}`} onClick={() => setTone('Empathetic')} type="button">
                 <span className="tone-label">Empathetic</span>
-                <span className="tone-desc">Warm and supportive — still direct and clear</span>
+                <span className="tone-desc">Warm and supportive, still direct and clear</span>
               </button>
               <button className={`tone-btn${tone === 'Direct' ? ' selected' : ''}`} onClick={() => setTone('Direct')} type="button">
                 <span className="tone-label">Direct</span>
-                <span className="tone-desc">Concise and professional — respectful but unambiguous</span>
+                <span className="tone-desc">Concise and professional, respectful but unambiguous</span>
               </button>
             </div>
 
@@ -488,13 +485,13 @@ export default function App() {
             <button className="generate-btn" onClick={handleGenerate} disabled={loading} type="button">
               {loading
                 ? <><span className="spinner" />Generating...</>
-                : <><div style={{ width: 18, height: 18, color: 'white' }}><FlameIcon /></div>Generate Feedback</>
+                : 'Generate feedback'
               }
             </button>
           </div>
 
           {notesCheck && !notesAccepted && (
-            <div className="card" style={{ borderLeft: '3px solid #D97706' }}>
+            <div className="card notice-warn">
               <div className="card-title" style={{ marginBottom: 4 }}>Your notes need sharpening</div>
               <p className="field-hint" style={{ margin: '0 0 12px' }}>{notesCheck.reason}</p>
 
@@ -508,7 +505,7 @@ export default function App() {
 
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 12 }}>
                 <button
-                  className="copy-btn"
+                  className="copy-btn btn-lg btn-primary"
                   type="button"
                   disabled={/\[[^\]]+\]/.test(sharpenedNotes)}
                   onClick={() => { setNotesAccepted(true); setInputText(sharpenedNotes); setNotesCheck(null); runGenerate(sharpenedNotes) }}
@@ -516,7 +513,7 @@ export default function App() {
                   {/\[[^\]]+\]/.test(sharpenedNotes) ? 'Answer the bracketed questions first' : 'Use this'}
                 </button>
                 <button
-                  className="copy-btn"
+                  className="copy-btn btn-lg"
                   type="button"
                   onClick={() => { setNotesAccepted(true); setNotesCheck(null); runGenerate(inputText.trim()) }}
                 >
@@ -577,12 +574,12 @@ export default function App() {
                     <textarea className="output-area" value={output} onChange={e => setOutput(e.target.value)} rows={14} />
 
                     {person && (
-                      <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(0,0,0,0.08)' }}>
+                      <div className="coach-handoff">
                         <p className="field-hint" style={{ margin: '0 0 8px' }}>
                           The development point in this feedback is the thing worth coaching. Take it
                           straight into a conversation with {person.first_name}, with the context carried across.
                         </p>
-                        <button className="copy-btn" onClick={handleTakeToCoaching} type="button">
+                        <button className="copy-btn btn-lg" onClick={handleTakeToCoaching} type="button">
                           Take this into a coaching conversation
                         </button>
                       </div>
