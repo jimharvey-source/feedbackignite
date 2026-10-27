@@ -200,14 +200,85 @@ export function sourceSessionIdFromUrl() {
 
 /** Load one saved session, so a tool can start from what another one produced. */
 export async function loadSession(client, sessionId) {
-  if (!sessionId) return null;
-  const { data } = await client
+  const { session } = await loadSourceSession(client, sessionId);
+  return session;
+}
+
+// ---------------------------------------------------------------------
+// The chain: one tool hands what it decided to the next
+//
+// Only ids travel on the link, each checked as a UUID, under our own mi_
+// names. Never ?code=, which is Supabase's own sign-in parameter.
+// ---------------------------------------------------------------------
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+export const TOOL_URLS = {
+  goal: 'https://goal.management-ignition.com',
+  delegate: 'https://delegate.management-ignition.com',
+  feedback: 'https://feedback.management-ignition.com',
+  coach: 'https://coach.management-ignition.com',
+  meeting: 'https://meeting.management-ignition.com',
+};
+
+/** The thread the last tool handed over, if any. */
+export function threadIdFromUrl() {
+  if (typeof window === 'undefined') return null;
+  const id = new URLSearchParams(window.location.search).get('mi_thread');
+  return UUID_RE.test(id || '') ? id : null;
+}
+
+/**
+ * The address of the next tool, carrying the person, the session it came
+ * from and the thread. Throws on an unknown tool or a malformed id, so a
+ * broken hand-over fails where it is made, not two screens later.
+ */
+export function chainUrl(tool, { personId, fromSessionId, threadId } = {}) {
+  const base = TOOL_URLS[tool];
+  if (!base) throw new Error(`chainUrl: unknown tool "${tool}".`);
+  const u = new URL(base);
+  const put = (name, value) => {
+    if (!value) return;
+    if (!UUID_RE.test(value)) throw new Error(`chainUrl: ${name} is not a valid id.`);
+    u.searchParams.set(name, value);
+  };
+  put('mi_person', personId);
+  put('mi_from', fromSessionId);
+  put('mi_thread', threadId);
+  return u.toString();
+}
+
+/**
+ * Open the next tool in this tab. Called only once the source session is
+ * saved and its id is in hand: pass that id, never a value read from state.
+ * Same tab, because a new window opened after an await is blocked as a pop-up.
+ */
+export function openNextTool(tool, ids) {
+  window.location.assign(chainUrl(tool, ids));
+}
+
+/**
+ * Load the session a hand-over came from. Answers { session, error }, so the
+ * caller can tell "nothing to load" from "the load failed". A missing session
+ * is an error here: the link promised one.
+ */
+export async function loadSourceSession(client, sessionId) {
+  if (!sessionId) return { session: null, error: null };
+  const { data, error } = await client
     .schema('app')
     .from('sessions')
-    .select('id, tool, title, person_id, inputs, outputs, occurred_at')
+    .select('id, tool, title, person_id, thread_id, inputs, outputs, occurred_at')
     .eq('id', sessionId)
     .maybeSingle();
-  return data || null;
+  if (error) {
+    console.error('loadSourceSession failed:', error.message);
+    return { session: null, error };
+  }
+  if (!data) {
+    console.error('loadSourceSession: no session with that id for this account.', sessionId);
+    return { session: null, error: new Error('The session this came from could not be found.') };
+  }
+  return { session: data, error: null };
 }
 
 /** Read a person's context so a tool can pre-fill its personal fields. */
