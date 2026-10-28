@@ -10,6 +10,10 @@ import {
   personRecordUrl,
   splitName,
   openNextTool,
+  sourceSessionIdFromUrl,
+  loadSourceSession,
+  carriedFrom,
+  fromLine,
 } from './mi-session.js'
 
 const supabase = createSuiteClient({
@@ -66,6 +70,29 @@ const DownloadIcon = () => (
 
 const SLIDER_LABELS = ['Very low', 'Low', 'Medium', 'High', 'Very high']
 
+// Low, Medium, High: the scale every tool in the suite now shares.
+function LevelInput({ label, hint, value, onChange }) {
+  return (
+    <div className="slider-field">
+      <span className="field-label">{label}</span>
+      <p className="field-hint">{hint}</p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 8 }}>
+        {['Low', 'Medium', 'High'].map(level => (
+          <button
+            key={level}
+            type="button"
+            className={`tone-btn${value === level ? ' selected' : ''}`}
+            aria-pressed={value === level}
+            onClick={() => onChange(level)}
+          >
+            <span className="tone-label">{level}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 function SliderInput({ label, hint, value, onChange }) {
   return (
     <div className="slider-field">
@@ -89,8 +116,13 @@ export default function App() {
   const [recipientName, setRecipientName] = useState('')
   const [inputText, setInputText] = useState('')
   const [tone, setTone] = useState('Empathetic')
-  const [skill, setSkill] = useState(3)
-  const [confidence, setConfidence] = useState(3)
+  // One shared scale across the suite: Low, Medium, High (agreed 27 October).
+  const [skill, setSkill] = useState('Medium')
+  const [confidence, setConfidence] = useState('Medium')
+  // What the last tool handed over, shown exactly as the manager wrote it.
+  const [carried, setCarried] = useState(null)
+  const [carryError, setCarryError] = useState('')
+  const [subject, setSubject] = useState('')
   const [output, setOutput] = useState('')
   const [guide, setGuide] = useState('')
   const [cadence, setCadence] = useState('')
@@ -134,6 +166,25 @@ export default function App() {
       setPerson(p)
       // Pre-fill from the record, without overwriting anything already typed.
       setRecipientName(prev => prev || [p.first_name, p.last_name].filter(Boolean).join(' '))
+    })
+    return () => { cancelled = true }
+  }, [user])
+
+  // A hand-over from Delegate: the task is the subject, and what was agreed sits beside it.
+  useEffect(() => {
+    if (!user) return
+    const fromId = sourceSessionIdFromUrl()
+    if (!fromId) return
+    let cancelled = false
+    loadSourceSession(supabase, fromId).then(({ session: src, error: srcError }) => {
+      if (cancelled) return
+      if (srcError || !src) {
+        setCarryError('The work this came from could not be loaded, so nothing was carried over.')
+        return
+      }
+      const c = carriedFrom(src)
+      setCarried({ ...c, from: src })
+      setSubject(prev => prev || c.subject || '')
     })
     return () => { cancelled = true }
   }, [user])
@@ -343,8 +394,8 @@ export default function App() {
       personId: target.id,
       title: `Feedback for ${target.first_name}`,
       // A thread started here is named from the manager's own notes, cut to about eight words.
-      threadSubject: inputText,
-      inputs: { inputText, tone, skill, confidence, ...names },
+      threadSubject: subject || inputText,
+      inputs: { inputText, tone, skill, confidence, subject, ...names },
       outputs: { output, guide, cadence },
     })
     if (saveError) {
@@ -454,6 +505,22 @@ export default function App() {
             </div>
           )}
 
+          {carryError && <p className="error-msg" role="alert">{carryError}</p>}
+          {carried && (
+            <div className="card">
+              <div className="card-title" style={{ marginBottom: 6 }}>
+                {carried.from.person_id
+                  ? <a href={personRecordUrl(carried.from.person_id)}>{fromLine(carried.from, person?.first_name)}</a>
+                  : fromLine(carried.from, person?.first_name)}
+              </div>
+              {carried.items.map(([k, v]) => (
+                <p key={k} className="field-hint" style={{ margin: '0 0 6px', whiteSpace: 'pre-wrap' }}>
+                  <strong>{k}:</strong> {v}
+                </p>
+              ))}
+            </div>
+          )}
+
           <div className="card card-main">
             <div className="card-title">Who this is for</div>
             <div className="name-fields">
@@ -498,13 +565,13 @@ export default function App() {
             <div className="divider" />
 
             <div className="card-title">About {names.recipientName || 'this person'}</div>
-            <SliderInput
+            <LevelInput
               label="Skill level"
               hint="How capable are they at this type of task or responsibility?"
               value={skill}
               onChange={setSkill}
             />
-            <SliderInput
+            <LevelInput
               label="Confidence level"
               hint="How confident are they in their own ability right now?"
               value={confidence}

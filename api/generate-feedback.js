@@ -180,8 +180,17 @@ ${SEVERITY_RULE}
 `
     : ''
 
-  const skillLabel = ['very low', 'low', 'medium', 'high', 'very high'][((skill || 3) - 1)]
-  const confidenceLabel = ['very low', 'low', 'medium', 'high', 'very high'][((confidence || 3) - 1)]
+  // The suite's one scale is Low, Medium, High (27 October). Older callers sent 1 to 5.
+  const levelLabel = (v) => {
+    const n = Number(v)
+    if (Number.isInteger(n) && n >= 1 && n <= 5) return ['very low', 'low', 'medium', 'high', 'very high'][n - 1]
+    const w = String(v || '').trim().toLowerCase()
+    if (w === 'low' || w === 'medium' || w === 'high') return w
+    console.error('generate-feedback: unrecognised level, read as medium:', v)
+    return 'medium'
+  }
+  const skillLabel = levelLabel(skill)
+  const confidenceLabel = levelLabel(confidence)
 
   const registerBlock = `- Says plainly what is not acceptable, and says it in the manager's own terms
 - Is written in the selected register. Both carry the same message with the same force. What changes is the room each part gets. Follow the word counts. They are the instruction.

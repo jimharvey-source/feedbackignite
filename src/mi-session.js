@@ -292,6 +292,87 @@ export async function loadSourceSession(client, sessionId) {
   return { session: data, error: null };
 }
 
+/**
+ * Skill and confidence on the one shared scale: Low, Medium, High.
+ * Feedback's old 1 to 5 sessions read as 1 or 2 Low, 3 Medium, 4 or 5 High.
+ * Anything else reads as not recorded.
+ */
+export function toLevel(value) {
+  if (value === null || value === undefined || value === '') return '';
+  const n = Number(value);
+  if (Number.isInteger(n) && n >= 1 && n <= 5) return n <= 2 ? 'Low' : n === 3 ? 'Medium' : 'High';
+  const w = String(value).trim().toLowerCase();
+  if (w === 'low' || w === 'medium' || w === 'high') return w[0].toUpperCase() + w.slice(1);
+  return '';
+}
+
+const SESSION_NOUN = { goal: 'goal', delegate: 'delegation', feedback: 'feedback', coach: 'coaching', meeting: 'meeting' };
+
+/** "From Sarah's goal, 3 November": the line at the top of a tool opened by a hand-over. */
+export function fromLine(session, firstName) {
+  const noun = SESSION_NOUN[session?.tool] || 'work';
+  const when = session?.occurred_at
+    ? new Date(session.occurred_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'long' })
+    : '';
+  const whose = firstName ? `${firstName}'s` : 'the';
+  return `From ${whose} ${noun}${when ? `, ${when}` : ''}`;
+}
+
+/**
+ * What one session hands to the next. Every value is the manager's own text,
+ * exactly as saved. Nothing here is written by a model.
+ */
+export function carriedFrom(session) {
+  if (!session) return null;
+  const i = session.inputs || {};
+  const o = session.outputs || {};
+  const text = (v) => (typeof v === 'string' ? v.trim() : '');
+  let subject = '';
+  let items = [];
+  let level = null;
+  if (session.tool === 'goal') {
+    subject = text(i.goalTitle);
+    items = [
+      ['The goal', i.goalTitle],
+      ['What it involves', i.goalDescription],
+      ['Success looks like', i.successCriteria],
+      ['By', i.deadline],
+      ['Stretch', i.stretchLevel],
+      ['Challenge zone', o.challengeZone && o.challengeZone.zone],
+    ];
+  } else if (session.tool === 'delegate') {
+    subject = text(i.taskTitle);
+    level = Number(o.delegationLevel) || null;
+    items = [
+      ['The task', i.taskTitle],
+      ['What was agreed', i.outcomes],
+      ['Level agreed', level ? `Level ${level}` : ''],
+      ['Check in by', i.deadline],
+    ];
+  } else if (session.tool === 'feedback') {
+    subject = text(i.subject);
+    items = [
+      ['About', i.subject],
+      ['Your feedback notes', i.inputText],
+    ];
+  } else if (session.tool === 'coach') {
+    subject = text(i.coachingTopic);
+    items = [
+      ['Coaching topic', i.coachingTopic],
+      ['Context', i.context],
+    ];
+  }
+  return {
+    tool: session.tool,
+    noun: SESSION_NOUN[session.tool] || 'work',
+    subject,
+    level,
+    skill: toLevel(i.skillLevel ?? i.skill),
+    confidence: toLevel(i.confidenceLevel ?? i.confidence),
+    items: items.map(([k, v]) => [k, text(v)]).filter(([, v]) => v),
+  };
+}
+
 /** Read a person's context so a tool can pre-fill its personal fields. */
 export async function loadPerson(client, personId) {
   if (!personId) return null;
