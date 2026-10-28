@@ -258,6 +258,17 @@ export function openNextTool(tool, ids) {
 }
 
 /**
+ * Forget the hand-over once the manager starts something new on the same page,
+ * so a fresh piece of work is not filed under the last one.
+ */
+export function clearChainFromUrl() {
+  if (typeof window === 'undefined') return;
+  const u = new URL(window.location.href);
+  ['mi_from', 'mi_thread'].forEach((k) => u.searchParams.delete(k));
+  window.history.replaceState(null, '', u.toString());
+}
+
+/**
  * Load the session a hand-over came from. Answers { session, error }, so the
  * caller can tell "nothing to load" from "the load failed". A missing session
  * is an error here: the link promised one.
@@ -327,9 +338,11 @@ export async function saveToolSession(client, args) {
   const { data: { user } } = await client.auth.getUser();
   if (!user) return { data: null, error: new Error('Not signed in.') };
 
+  // The session this came from: named by the tool, or carried on the link.
+  const sourceSessionId = args.sourceSessionId || sourceSessionIdFromUrl();
   let threadId = null;
-  if (args.sourceSessionId) {
-    const { session, error } = await loadSourceSession(client, args.sourceSessionId);
+  if (sourceSessionId) {
+    const { session, error } = await loadSourceSession(client, sourceSessionId);
     if (error) return { data: null, error };
     threadId = session.thread_id || null;
   }
@@ -359,7 +372,7 @@ export async function saveToolSession(client, args) {
     title: args.title || null,
     inputs: args.inputs || {},
     outputs: args.outputs || {},
-    source_session_id: args.sourceSessionId || null,
+    source_session_id: sourceSessionId || null,
   }).select().maybeSingle();
 
   if (result.error || !result.data) {

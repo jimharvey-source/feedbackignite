@@ -9,6 +9,7 @@ import {
   createPerson,
   personRecordUrl,
   splitName,
+  openNextTool,
 } from './mi-session.js'
 
 const supabase = createSuiteClient({
@@ -109,7 +110,9 @@ export default function App() {
   // Started in the tool rather than from the app: is this person already on the team?
   const [teamMatch, setTeamMatch] = useState(null)
   const [addedPerson, setAddedPerson] = useState(null)
-  const [savedId, setSavedId] = useState(null)
+  // The saved session, kept so the hand-over never saves twice.
+  const [savedSession, setSavedSession] = useState(null)
+  const [handOverState, setHandOverState] = useState('idle')
 
   // The sharpening check. Vague notes produce vague feedback however good the
   // main prompt is, so this runs first and offers a sharper version.
@@ -172,7 +175,7 @@ export default function App() {
     setActiveTab('feedback')
     setSaveState('idle')
     setAddedPerson(null)
-    setSavedId(null)
+    setSavedSession(null)
     setNotesCheck(null)
     setLoading(true)
 
@@ -329,7 +332,7 @@ export default function App() {
         console.error('createPerson failed:', addError?.message)
         setSaveState('idle')
         setError('That person could not be added to your team, so nothing was saved.')
-        return
+        return null
       }
       target = created
       setAddedPerson(created)
@@ -347,25 +350,33 @@ export default function App() {
     if (saveError) {
       setSaveState('idle')
       setError('That could not be saved to the person record.')
-      return
+      return null
     }
-    setSavedId(data?.id || null)
+    setSavedSession(data)
     setSaveState('saved')
+    return { session: data, person: target }
   }
 
-  // The chain. Save first, then hand Coach the session so it can open the
-  // conversation from the development point rather than a blank box.
+  // The chain. Save first and confirm the id, then open Coach with it, so the
+  // development point arrives on the first click.
   const handleTakeToCoaching = async () => {
-    if (!person) return
-    let id = savedId
-    if (!id) {
-      await handleSaveToPerson()
-      id = savedId
+    if (handOverState !== 'idle') return
+    setHandOverState('saving')
+    let session = savedSession
+    let target = person || teamMatch
+    if (!session) {
+      const saved = await handleSaveToPerson()
+      if (!saved || !saved.session?.id) { setHandOverState('idle'); return }
+      session = saved.session
+      target = saved.person
     }
-    const u = new URL(COACH_URL)
-    u.searchParams.set('mi_person', person.id)
-    if (id) u.searchParams.set('mi_from', id)
-    window.open(u.toString(), '_blank', 'noopener')
+    try {
+      openNextTool('coach', { personId: target.id, fromSessionId: session.id, threadId: session.thread_id })
+    } catch (err) {
+      console.error('handleTakeToCoaching failed:', err.message)
+      setHandOverState('idle')
+      setError('Coach Ignite could not be opened. Your feedback is saved.')
+    }
   }
 
   // Two PDFs for two readers. The recipient's copy is the feedback alone.
@@ -619,14 +630,14 @@ export default function App() {
                     )}
                     <textarea className="output-area" value={output} onChange={e => setOutput(e.target.value)} rows={14} />
 
-                    {person && (
+                    {user && splitName(names.recipientName) && (
                       <div className="coach-handoff">
                         <p className="field-hint" style={{ margin: '0 0 8px' }}>
                           The development point in this feedback is the thing worth coaching. Take it
-                          straight into a conversation with {person.first_name}, with the context carried across.
+                          straight into a conversation with {splitName(names.recipientName).first_name}, with the context carried across.
                         </p>
-                        <button className="copy-btn btn-lg" onClick={handleTakeToCoaching} type="button">
-                          Take this into a coaching conversation
+                        <button className="copy-btn btn-lg" onClick={handleTakeToCoaching} disabled={handOverState !== 'idle' || saveState === 'saving'} type="button">
+                          {handOverState === 'idle' ? 'Take this to coaching' : 'Saving…'}
                         </button>
                       </div>
                     )}
