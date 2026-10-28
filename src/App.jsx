@@ -339,6 +339,8 @@ export default function App() {
       tool: 'feedback',
       personId: target.id,
       title: `Feedback for ${target.first_name}`,
+      // A thread started here is named from the manager's own notes, cut to about eight words.
+      threadSubject: inputText,
       inputs: { inputText, tone, skill, confidence, ...names },
       outputs: { output, guide, cadence },
     })

@@ -294,13 +294,31 @@ export async function loadPerson(client, personId) {
 }
 
 /**
- * Save a finished tool run to a person's record.
+ * A thread's name: the subject of the session that started it, as the manager
+ * wrote it, cut to about eight words. Never written by the model.
+ */
+export function threadTitleFrom(text, maxWords = 8) {
+  const words = String(text || '').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean);
+  if (!words.length) return '';
+  const cut = words.slice(0, maxWords).join(' ').replace(/[.,;:!?]+$/, '');
+  return words.length > maxWords ? `${cut}…` : cut;
+}
+
+/**
+ * Save a finished tool run to a person's record, inside its thread.
+ *
+ * A session handed over from another joins that session's thread. One
+ * started from scratch opens a new thread named from its own subject.
+ * If the source session cannot be read, nothing is saved: a new thread
+ * would quietly split one piece of work in two.
  *
  * @param {object} client
  * @param {object} args
  * @param {'goal'|'delegate'|'feedback'|'coach'|'meeting'} args.tool
  * @param {string}  args.personId
  * @param {string} [args.title]
+ * @param {string} [args.threadSubject]    what a new thread is named from; defaults to title
+ * @param {string} [args.threadId]         defaults to mi_thread on the link
  * @param {object} [args.inputs]           the form, as it stood
  * @param {object} [args.outputs]          both outputs, plus guide/cadence
  * @param {string} [args.sourceSessionId]  where this came from, for the chain
@@ -309,15 +327,51 @@ export async function saveToolSession(client, args) {
   const { data: { user } } = await client.auth.getUser();
   if (!user) return { data: null, error: new Error('Not signed in.') };
 
-  return client.schema('app').from('sessions').insert({
+  let threadId = null;
+  if (args.sourceSessionId) {
+    const { session, error } = await loadSourceSession(client, args.sourceSessionId);
+    if (error) return { data: null, error };
+    threadId = session.thread_id || null;
+  }
+  if (!threadId) threadId = args.threadId || threadIdFromUrl() || null;
+
+  let openedThreadId = null;
+  if (!threadId) {
+    const title = threadTitleFrom(args.threadSubject || args.title) || 'Untitled piece of work';
+    const { data: thread, error: threadError } = await client.schema('app').from('threads').insert({
+      account_id: user.id,
+      person_id: args.personId || null,
+      title,
+    }).select('id').maybeSingle();
+    if (threadError || !thread) {
+      console.error('saveToolSession: the thread was not opened:', threadError?.message);
+      return { data: null, error: threadError || new Error('The thread was not opened.') };
+    }
+    threadId = thread.id;
+    openedThreadId = thread.id;
+  }
+
+  const result = await client.schema('app').from('sessions').insert({
     account_id: user.id,
     person_id: args.personId || null,
+    thread_id: threadId,
     tool: args.tool,
     title: args.title || null,
     inputs: args.inputs || {},
     outputs: args.outputs || {},
     source_session_id: args.sourceSessionId || null,
   }).select().maybeSingle();
+
+  if (result.error || !result.data) {
+    console.error('saveToolSession: the session was not saved:', result.error?.message);
+    // Leave no empty thread behind.
+    if (openedThreadId) {
+      const { error: undoError } = await client.schema('app').from('threads').delete().eq('id', openedThreadId);
+      if (undoError) console.error('saveToolSession: an empty thread was left behind:', openedThreadId, undoError.message);
+    }
+    return { data: null, error: result.error || new Error('The session was not returned.') };
+  }
+  return result;
 }
 
 /** Record something the manager and the person agreed to do. */
