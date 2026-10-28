@@ -472,7 +472,7 @@ export default function App() {
           </a>
           <div className="header-actions">
             <a href="https://app.management-ignition.com/" className="header-back">Back to dashboard</a>
-            <MethodLink slug="feedback" className="header-back" style={{ background: "none", border: "none", padding: 0, font: "inherit", cursor: "pointer" }} />
+            <MethodLink slug="feedback" className="header-back" style={{ background: "none", border: "none", fontFamily: "inherit", cursor: "pointer" }} />
             {user && <span className="header-user">{user.email}</span>}
           </div>
         </div>
