@@ -532,6 +532,8 @@ happened and the notes do not say why, leave the why out.`
         { name: 'antithesis', re: /\bnot\s+(?:a|as|an)\s+[^.,;:!?]{2,45}\s+but\s+(?:a|as|an)\b/i },
         // "This is not about X. It is that Y." Same mirror, full stop in the middle.
         { name: 'antithesis', re: /\b(?:this|that|it)\s+is\s+not\s+about\b/i },
+        // "Your instincts are not the problem. The gap is..." Same mirror again (29 October).
+        { name: 'antithesis', re: /\b(?:is|are|was|were)\s+not\s+the\s+(?:problem|issue|point|question|concern)\b/i },
       ]
       const offencesIn = (t) => BANNED.filter((b) => b.re.test(t)).map((b) => b.name)
 
@@ -547,6 +549,8 @@ joins so the prose still reads properly:
 - defines something by what it is not: "that is not a small pattern, it is a regular one", "a
   requirement, not a target", "every day, not most days". Cut the negative half and keep the
   positive statement on its own. "That is a pattern." "That is a requirement." "Every day."
+  "Your instincts in the room are not the problem. The gap is in the step before you speak" becomes
+  "The gap is in the step before you speak."
   This construction is the clearest sign a machine wrote the document and it must not survive.
 - guesses at why the person is behaving this way, or how they feel. "whether that is a schedule
   issue, a childcare issue, or something else entirely" goes. "feeling he was trying to help"
